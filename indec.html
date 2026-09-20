@@ -71,8 +71,49 @@
 		const demoEmployees = [{ name:'Nguyễn An', initials:'NA', in:'08:02', out:'—', status:'Đang làm' }, { name:'Trần Minh', initials:'TM', in:'07:56', out:'17:02', status:'Đủ công' }, { name:'Lê Hương', initials:'LH', in:'—', out:'—', status:'Chưa vào ca' }];
 		let currentUser = { id:'demo', name:'Nguyễn An', email:'demo@congty.vn', role:'employee' }, currentAttendance = null;
 		const $ = id => document.getElementById(id);
-		function setView(user) { currentUser=user; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('user-name').textContent=user.name; $('user-role').textContent=user.role==='admin'?'Quản trị viên':'Nhân viên'; $('user-avatar').textContent=user.name.split(' ').map(x=>x[0]).slice(-2).join(''); if(user.role==='admin') { $('admin-nav').classList.remove('hidden'); $('admin-panel').classList.remove('hidden'); renderEmployees(); } renderHistory(demoHistory); }
+		function setView(user) { currentUser=user; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('user-name').textContent=user.name; $('user-role').textContent=user.role==='admin'?'Quản trị viên':'Nhân viên'; $('user-avatar').textContent=user.name.split(' ').map(x=>x[0]).slice(-2).join(''); if(user.role==='admin') { $('admin-nav').classList.remove('hidden'); $('admin-panel').classList.remove('hidden'); renderEmployees(); } if (user.id === 'demo') {
+  renderHistory(demoHistory);
+} else {
+  loadHistory();
+}; }
 		function renderHistory(items) { $('recent-list').innerHTML=items.map(item=>`<div class="entry"><div class="entry-date">${item.date}</div><div><div class="entry-title">${item.title}</div><div class="entry-sub">${item.time}</div></div><span class="badge">${item.status}</span></div>`).join(''); }
+        async function loadHistory() {
+  if (!client || !currentUser || currentUser.id === 'demo') return;
+
+  const { data, error } = await client
+    .from('attendance')
+    .select('id, work_date, check_in, check_out')
+    .eq('user_id', currentUser.id)
+    .order('work_date', { ascending: false })
+    .limit(5);
+
+  if (error) {
+    console.error('Lỗi tải lịch sử:', error);
+    return;
+  }
+
+  const history = data.map(item => ({
+    date: item.work_date,
+    title: 'Ca hành chính',
+    time:
+      (item.check_in
+        ? new Date(item.check_in).toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : '--:--') +
+      ' — ' +
+      (item.check_out
+        ? new Date(item.check_out).toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        : 'Đang làm'),
+    status: item.check_out ? 'Đủ công' : 'Đang làm'
+  }));
+
+  renderHistory(history);
+}
 		function renderEmployees() { $('employee-list').innerHTML=demoEmployees.map(e=>`<tr><td><div class="employee"><span class="mini-avatar">${e.initials}</span>${e.name}</div></td><td>${e.in}</td><td>${e.out}</td><td><span class="badge">${e.status}</span></td></tr>`).join(''); }
 		function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
 		async function loadUser() { if(!client) return; const {data:{user}}=await client.auth.getUser(); if(!user) return; const {data:profile}=await client.from('profiles').select('full_name,role').eq('id',user.id).single(); setView({id:user.id,name:profile?.full_name||user.email.split('@')[0],email:user.email,role:profile?.role||'employee'}); }
