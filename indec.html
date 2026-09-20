@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="vi">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Giờ Công | Quản lý chấm công</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+	<script src="./config.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	<style>
+		:root { --ink:#17211f; --muted:#6d7774; --paper:#f6f8f2; --panel:#fff; --line:#e4e9df; --green:#1f7159; --mint:#dff1e8; --orange:#e9874c; --shadow:0 20px 60px rgba(36,57,45,.08); }
+		* { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--paper); font:15px 'DM Sans',sans-serif; }
+		h1,h2,h3,.brand { font-family:'Space Grotesk',sans-serif; } button,input { font:inherit; } button { cursor:pointer; }
+		.shell { display:grid; grid-template-columns:248px 1fr; min-height:100vh; } .sidebar { padding:28px 20px; background:#173f35; color:#dceee4; }
+		.brand { display:flex; gap:10px; align-items:center; font-size:21px; font-weight:700; color:#fff; margin:0 10px 54px; }
+		.brand-mark { display:grid; place-items:center; width:32px; height:32px; border-radius:10px; background:#f4ad6e; color:#173f35; font-size:18px; }
+		.side-label { margin:0 12px 12px; color:#8db3a5; font-size:11px; text-transform:uppercase; letter-spacing:.14em; }
+		.nav { display:grid; gap:6px; } .nav button { border:0; border-radius:10px; padding:12px; text-align:left; color:#b8d4c7; background:transparent; font-weight:600; }
+		.nav button.active,.nav button:hover { color:#fff; background:rgba(255,255,255,.12); } .nav-icon { display:inline-block; width:23px; font-size:17px; }
+		.side-bottom { position:fixed; bottom:25px; width:208px; border-top:1px solid rgba(255,255,255,.14); padding-top:18px; }
+		.user-chip { display:flex; align-items:center; gap:10px; color:#dceee4; } .avatar { display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:#f4ad6e; color:#173f35; font-weight:700; }
+		.user-chip small { display:block; color:#91b8aa; margin-top:2px; } .logout { margin-top:16px; border:0; background:transparent; color:#9abdb1; padding:0; }
+		main { padding:34px clamp(22px,4vw,62px); max-width:1440px; width:100%; } .topbar { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:32px; }
+		.eyebrow { color:var(--green); text-transform:uppercase; font-size:11px; letter-spacing:.17em; font-weight:700; } h1 { font-size:32px; margin:8px 0 7px; letter-spacing:-.04em; } .date { color:var(--muted); }
+		.top-actions { display:flex; gap:10px; align-items:center; } .outline,.primary { border-radius:9px; padding:10px 15px; font-weight:700; } .outline { border:1px solid var(--line); color:var(--ink); background:#fff; } .primary { border:0; color:#fff; background:var(--green); }
+		.overview { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:15px; margin-bottom:26px; } .stat { min-height:138px; padding:20px; border:1px solid var(--line); border-radius:13px; background:var(--panel); box-shadow:var(--shadow); }
+		.stat.featured { color:#fff; background:var(--green); border-color:var(--green); } .stat-label { color:var(--muted); font-size:13px; } .featured .stat-label { color:#b9dacc; } .stat-value { margin:18px 0 5px; font:700 32px 'Space Grotesk'; letter-spacing:-.06em; } .stat-note { color:var(--muted); font-size:12px; } .featured .stat-note { color:#b9dacc; }
+		.grid { display:grid; grid-template-columns:1.15fr .85fr; gap:18px; } .panel { padding:22px; border:1px solid var(--line); border-radius:13px; background:#fff; box-shadow:var(--shadow); } .panel-head { display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom:20px; } h2 { margin:0; font-size:19px; letter-spacing:-.03em; } .panel-head a { color:var(--green); font-size:13px; font-weight:700; cursor:pointer; }
+		.clock { display:grid; grid-template-columns:1fr 1fr; gap:12px; } .clock-card { padding:19px; border:1px solid var(--line); border-radius:10px; background:#fbfcf9; } .clock-card p { margin:0 0 18px; color:var(--muted); font-size:13px; } .clock-time { margin-bottom:17px; font:700 30px 'Space Grotesk'; } .clock button { width:100%; }
+		.timeline { display:grid; gap:0; } .entry { display:grid; grid-template-columns:84px 1fr auto; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); } .entry:last-child { border-bottom:0; } .entry-date { color:var(--muted); font-size:12px; } .entry-title { font-weight:700; } .entry-sub { margin-top:3px; color:var(--muted); font-size:12px; } .badge { padding:5px 8px; border-radius:20px; color:#35735e; background:var(--mint); font-size:11px; font-weight:700; }
+		.admin-table { width:100%; border-collapse:collapse; } .admin-table th { padding:11px 8px; color:var(--muted); border-bottom:1px solid var(--line); font-size:12px; text-align:left; font-weight:500; } .admin-table td { padding:14px 8px; border-bottom:1px solid var(--line); } .employee { display:flex; align-items:center; gap:9px; font-weight:600; } .mini-avatar { display:grid; place-items:center; width:28px; height:28px; border-radius:50%; color:#fff; background:#dd9262; font-size:11px; }
+		.notice { margin-bottom:20px; padding:12px 15px; border:1px solid #f3d1ab; border-radius:9px; color:#855328; background:#fff6e9; font-size:13px; } .hidden { display:none !important; }
+		#login { display:grid; place-items:center; min-height:100vh; padding:20px; background:radial-gradient(circle at 80% 15%,#f4d9b6 0,transparent 28%),#edf5ed; } .login-box { width:min(430px,100%); padding:38px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow); } .login-box .brand { margin:0 0 42px; color:var(--green); } .login-box h1 { font-size:28px; } .login-box p { color:var(--muted); line-height:1.6; } label { display:block; margin:19px 0 7px; color:#47534f; font-size:13px; font-weight:700; } input { width:100%; padding:12px 13px; border:1px solid var(--line); border-radius:8px; outline:none; } input:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--mint); } .login-box .primary { width:100%; margin-top:22px; padding:13px; } .login-note { margin-top:18px; text-align:center; font-size:12px; } .demo-link { color:var(--green); font-weight:700; cursor:pointer; }
+		@media (max-width:900px) { .shell { grid-template-columns:1fr; } .sidebar { padding:15px 18px; } .brand { margin:0 0 15px; } .side-label,.side-bottom { display:none; } .nav { display:flex; overflow:auto; } .nav button { white-space:nowrap; } main { padding:26px 18px; } .overview { grid-template-columns:1fr 1fr; } .grid { grid-template-columns:1fr; } }
+		@media (max-width:560px) { .topbar { display:block; } .top-actions { margin-top:18px; } .overview,.clock { grid-template-columns:1fr; } .panel { padding:16px; overflow:auto; } .admin-table { min-width:560px; } }
+	</style>
+</head>
+<body>
+	<section id="login">
+		<div class="login-box">
+			<div class="brand"><span class="brand-mark">✓</span> Giờ Công</div>
+			<div class="eyebrow">Cổng nội bộ</div><h1>Chấm công nhẹ nhàng hơn.</h1>
+			<p>Đăng nhập để xem ca làm, lịch sử chấm công và thông tin đội ngũ.</p>
+			<form id="login-form"><label for="email">Email công ty</label><input id="email" type="email" placeholder="ten@congty.vn" required><label for="password">Mật khẩu</label><input id="password" type="password" placeholder="••••••••" required><button class="primary" type="submit">Đăng nhập</button></form>
+			<div class="login-note">Chưa cấu hình Supabase? <span class="demo-link" id="demo-login">Xem bản demo</span></div>
+			<div id="login-error" class="login-note" style="color:#b44b3f"></div>
+		</div>
+	</section>
+
+	<div id="app" class="shell hidden">
+		<aside class="sidebar"><div class="brand"><span class="brand-mark">✓</span> Giờ Công</div><p class="side-label">Không gian làm việc</p><nav class="nav"><button class="active"><span class="nav-icon">▦</span> Tổng quan</button><button><span class="nav-icon">◷</span> Lịch sử chấm công</button><button id="admin-nav" class="hidden"><span class="nav-icon">◎</span> Quản trị nhân sự</button></nav><div class="side-bottom"><div class="user-chip"><span class="avatar" id="user-avatar">AN</span><div><strong id="user-name">Admin</strong><small id="user-role">Quản trị viên</small></div></div><button class="logout" id="logout">↪ Đăng xuất</button></div></aside>
+		<main><div class="topbar"><div><div class="eyebrow" id="page-eyebrow">Thứ hai, 21 tháng 9, 2026</div><h1 id="page-title">Tổng quan hôm nay</h1><div class="date" id="page-subtitle">Chúc bạn một ngày làm việc hiệu quả.</div></div><div class="top-actions"><button class="outline" id="refresh">↻ Làm mới</button><button class="primary" id="export">↓ Xuất báo cáo</button></div></div>
+			<div id="demo-notice" class="notice hidden">Bạn đang xem bản demo. Kết nối Supabase trong phần cấu hình để lưu dữ liệu thật.</div>
+			<section class="overview"><div class="stat featured"><div class="stat-label">Trạng thái hôm nay</div><div class="stat-value" id="today-status">Chưa vào ca</div><div class="stat-note" id="today-note">Bấm “Bắt đầu ca” khi bạn sẵn sàng.</div></div><div class="stat"><div class="stat-label">Giờ làm tuần này</div><div class="stat-value">32<span style="font-size:18px">h 40m</span></div><div class="stat-note">Mục tiêu 40 giờ</div></div><div class="stat"><div class="stat-label">Ngày công tháng này</div><div class="stat-value">18<span style="font-size:18px"> ngày</span></div><div class="stat-note">+2 so với tháng trước</div></div><div class="stat"><div class="stat-label">Đi muộn</div><div class="stat-value">01<span style="font-size:18px"> lần</span></div><div class="stat-note">Trong tháng 9</div></div></section>
+			<div class="grid"><section class="panel"><div class="panel-head"><h2>Chấm công hôm nay</h2><span class="badge">Đang hoạt động</span></div><div class="clock"><div class="clock-card"><p>Giờ vào</p><div class="clock-time" id="check-in-time">--:--</div><button class="primary" id="check-in">Bắt đầu ca</button></div><div class="clock-card"><p>Giờ ra</p><div class="clock-time" id="check-out-time">--:--</div><button class="outline" id="check-out" disabled>Kết thúc ca</button></div></div></section>
+				<section class="panel"><div class="panel-head"><h2>Ca làm sắp tới</h2><a>Xem lịch →</a></div><div class="entry"><div class="entry-date">HÔM NAY</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div><span class="badge">Đang diễn ra</span></div><div class="entry"><div class="entry-date">T3, 22/09</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div></div></section>
+				<section class="panel"><div class="panel-head"><h2>Lịch sử gần đây</h2><a>Xem tất cả →</a></div><div class="timeline" id="recent-list"></div></section>
+				<section class="panel hidden" id="admin-panel"><div class="panel-head"><h2>Nhân sự hôm nay</h2><span class="badge">24 nhân viên</span></div><table class="admin-table"><thead><tr><th>Nhân viên</th><th>Giờ vào</th><th>Giờ ra</th><th>Trạng thái</th></tr></thead><tbody id="employee-list"></tbody></table></section>
+			</div>
+		</main>
+	</div>
+	<script>
+		const SUPABASE_URL = window.SUPABASE_URL || '';
+		const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
+		const client = SUPABASE_URL && SUPABASE_ANON_KEY ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+		const demoHistory = [{ date:'Hôm nay', title:'Ca hành chính', time:'08:02 — Đang làm', status:'Đang làm' }, { date:'T6, 18/09', title:'Ca hành chính', time:'07:58 — 17:04', status:'Đủ công' }, { date:'T5, 17/09', title:'Ca hành chính', time:'08:11 — 17:00', status:'Đi muộn' }];
+		const demoEmployees = [{ name:'Nguyễn An', initials:'NA', in:'08:02', out:'—', status:'Đang làm' }, { name:'Trần Minh', initials:'TM', in:'07:56', out:'17:02', status:'Đủ công' }, { name:'Lê Hương', initials:'LH', in:'—', out:'—', status:'Chưa vào ca' }];
+		let currentUser = { id:'demo', name:'Nguyễn An', email:'demo@congty.vn', role:'employee' }, currentAttendance = null;
+		const $ = id => document.getElementById(id);
+		function setView(user) { currentUser=user; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('user-name').textContent=user.name; $('user-role').textContent=user.role==='admin'?'Quản trị viên':'Nhân viên'; $('user-avatar').textContent=user.name.split(' ').map(x=>x[0]).slice(-2).join(''); if(user.role==='admin') { $('admin-nav').classList.remove('hidden'); $('admin-panel').classList.remove('hidden'); renderEmployees(); } renderHistory(demoHistory); }
+		function renderHistory(items) { $('recent-list').innerHTML=items.map(item=>`<div class="entry"><div class="entry-date">${item.date}</div><div><div class="entry-title">${item.title}</div><div class="entry-sub">${item.time}</div></div><span class="badge">${item.status}</span></div>`).join(''); }
+		function renderEmployees() { $('employee-list').innerHTML=demoEmployees.map(e=>`<tr><td><div class="employee"><span class="mini-avatar">${e.initials}</span>${e.name}</div></td><td>${e.in}</td><td>${e.out}</td><td><span class="badge">${e.status}</span></td></tr>`).join(''); }
+		function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
+		async function loadUser() { if(!client) return; const {data:{user}}=await client.auth.getUser(); if(!user) return; const {data:profile}=await client.from('profiles').select('full_name,role').eq('id',user.id).single(); setView({id:user.id,name:profile?.full_name||user.email.split('@')[0],email:user.email,role:profile?.role||'employee'}); }
+		$('login-form').addEventListener('submit', async event => { event.preventDefault(); $('login-error').textContent=''; if(!client) { $('login-error').textContent='Chưa có cấu hình Supabase. Hãy chọn bản demo.'; return; } const {error}=await client.auth.signInWithPassword({email:$('email').value,password:$('password').value}); if(error) $('login-error').textContent=error.message; else loadUser(); });
+		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView(currentUser); });
+		$('logout').addEventListener('click',async()=>{ if(client) await client.auth.signOut(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); });
+		$('check-in').addEventListener('click',async()=>{ const time=now(); currentAttendance={check_in:time}; $('check-in-time').textContent=time; $('check-in').disabled=true; $('check-out').disabled=false; $('today-status').textContent='Đang làm việc'; $('today-note').textContent='Ca làm đang được ghi nhận.'; if(client&&currentUser.id!=='demo') { const {data}=await client.from('attendance').insert({employee_id:currentUser.id,check_in:new Date().toISOString()}).select('id').single(); currentAttendance.id=data?.id; } });
+		$('check-out').addEventListener('click',async()=>{ const time=now(); $('check-out-time').textContent=time; $('check-out').disabled=true; $('today-status').textContent='Đã hoàn thành'; $('today-note').textContent='Cảm ơn bạn, hẹn gặp lại!'; if(client&&currentAttendance?.id) await client.from('attendance').update({check_out:new Date().toISOString()}).eq('id',currentAttendance.id); });
+		$('refresh').addEventListener('click',()=>location.reload()); $('export').addEventListener('click',()=>alert('Báo cáo CSV sẽ được bật sau khi kết nối Supabase.'));
+		if(client) loadUser();
+	</script>
+</body>
+</html>
