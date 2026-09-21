@@ -121,7 +121,8 @@
 
   const { data: { user } } = await client.auth.getUser();
   if (!user) return;
-
+$('login').classList.add('hidden');
+$('app').classList.remove('hidden');
   // Tìm ca đang làm chưa check-out
   const { data: activeAttendance, error } = await client
     .from('attendance')
