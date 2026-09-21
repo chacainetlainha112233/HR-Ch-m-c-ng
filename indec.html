@@ -128,6 +128,7 @@
   }));
 
   renderHistory(history);
+		}
 }
 		function renderEmployees() { $('employee-list').innerHTML=demoEmployees.map(e=>`<tr><td><div class="employee"><span class="mini-avatar">${e.initials}</span>${e.name}</div></td><td>${e.in}</td><td>${e.out}</td><td><span class="badge">${e.status}</span></td></tr>`).join(''); }
 		function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
