@@ -116,7 +116,42 @@
 }
 		function renderEmployees() { $('employee-list').innerHTML=demoEmployees.map(e=>`<tr><td><div class="employee"><span class="mini-avatar">${e.initials}</span>${e.name}</div></td><td>${e.in}</td><td>${e.out}</td><td><span class="badge">${e.status}</span></td></tr>`).join(''); }
 		function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
-		async function loadUser() { if(!client) return; const {data:{user}}=await client.auth.getUser(); if(!user) return; const {data:profile}=await client.from('profiles').select('full_name,role').eq('id',user.id).single(); setView({id:user.id,name:profile?.full_name||user.email.split('@')[0],email:user.email,role:profile?.role||'employee'}); }
+		async function loadUser() {
+  if (!client) return;
+
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return;
+
+  // Tìm ca đang làm chưa check-out
+  const { data: activeAttendance, error } = await client
+    .from('attendance')
+    .select('*')
+    .eq('user_id', user.id)
+    .is('check_out', null)
+    .order('check_in', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Lỗi tải ca hiện tại:', error);
+    return;
+  }
+
+  if (activeAttendance) {
+    currentAttendance = activeAttendance;
+
+    const checkInTime = new Date(activeAttendance.check_in);
+
+    $('check-in-time').textContent = checkInTime.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    $('check-in').disabled = true;
+    $('check-out').disabled = false;
+    $('today-status').textContent = 'Đang làm';
+  }
+}
 		$('login-form').addEventListener('submit', async event => { event.preventDefault(); $('login-error').textContent=''; if(!client) { $('login-error').textContent='Chưa có cấu hình Supabase. Hãy chọn bản demo.'; return; } const {error}=await client.auth.signInWithPassword({email:$('email').value,password:$('password').value}); if(error) $('login-error').textContent=error.message; else loadUser(); });
 		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView(currentUser); });
 		$('logout').addEventListener('click',async()=>{ if(client) await client.auth.signOut(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); });
