@@ -144,8 +144,35 @@ $('check-in-time').textContent = checkInTime.toLocaleTimeString('vi-VN', {hour:'
 $('check-in').disabled = true;
 $('check-out').disabled = false;
 		}
+		// CHECK-OUT SUPABASE
+async function checkOutSupabase() {
+const { data: { user } } = await client.auth.getUser();
+if (!user) return alert('Bạn chưa đăng nhập');
+	const checkOutTime = new Date();
+
+const { data, error } = await client
+  .from('attendance')
+  .update({
+    check_out: checkOutTime.toISOString()
+  })
+  .eq('user_id', user.id)
+  .is('check_out', null)
+  .select()
+  .single();
+	if (error) {
+  console.error(error);
+  return alert('Không thể kết thúc ca: ' + error.message);
+}
+	currentAttendance = data;
+$('check-out-time').textContent = checkOutTime.toLocaleTimeString('vi-VN', {
+  hour: '2-digit',
+  minute: '2-digit'
+});
+$('check-out').disabled = true;
+$('today-status').textContent = 'Đã hoàn thành';
+}
 		$('check-in').addEventListener('click', checkInSupabase);
-		$('check-out').addEventListener('click',async()=>{ const time=now(); $('check-out-time').textContent=time; $('check-out').disabled=true; $('today-status').textContent='Đã hoàn thành'; $('today-note').textContent='Cảm ơn bạn, hẹn gặp lại!'; if(client&&currentAttendance?.id) await client.from('attendance').update({check_out:new Date().toISOString()}).eq('id',currentAttendance.id); });
+		$('check-out').addEventListener('click', checkOutSupabase);
 		$('refresh').addEventListener('click',()=>location.reload()); $('export').addEventListener('click',()=>alert('Báo cáo CSV sẽ được bật sau khi kết nối Supabase.'));
 		if(client) loadUser();
 	</script>
