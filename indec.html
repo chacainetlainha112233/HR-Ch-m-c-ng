@@ -120,7 +120,31 @@
 		$('login-form').addEventListener('submit', async event => { event.preventDefault(); $('login-error').textContent=''; if(!client) { $('login-error').textContent='Chưa có cấu hình Supabase. Hãy chọn bản demo.'; return; } const {error}=await client.auth.signInWithPassword({email:$('email').value,password:$('password').value}); if(error) $('login-error').textContent=error.message; else loadUser(); });
 		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView(currentUser); });
 		$('logout').addEventListener('click',async()=>{ if(client) await client.auth.signOut(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); });
-		$('check-in').addEventListener('click',async()=>{ const time=now(); currentAttendance={check_in:time}; $('check-in-time').textContent=time; $('check-in').disabled=true; $('check-out').disabled=false; $('today-status').textContent='Đang làm việc'; $('today-note').textContent='Ca làm đang được ghi nhận.'; if(client&&currentUser.id!=='demo') { const {data}=await client.from('attendance').insert({user_id:currentUser.id,check_in:new Date().toISOString()}).select('id').single(); currentAttendance.id=data?.id; } });
+		// CHECK-IN SUPABASE
+		async function checkInSupabase() {
+			const { data: { user } } = await client.auth.getUser();
+if (!user) return alert('Bạn chưa đăng nhập');
+			const checkInTime = new Date();
+const workDate = checkInTime.toLocaleDateString('en-CA');
+			const { data, error } = await client
+  .from('attendance')
+  .insert({
+    user_id: user.id,
+    work_date: workDate,
+    check_in: checkInTime.toISOString()
+  })
+  .select()
+  .single();
+			if (error) {
+  console.error(error);
+  return alert('Không thể bắt đầu ca: ' + error.message);
+}
+			currentAttendance = data;
+$('check-in-time').textContent = checkInTime.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
+$('check-in').disabled = true;
+$('check-out').disabled = false;
+		}
+		$('check-in').addEventListener('click', checkInSupabase);
 		$('check-out').addEventListener('click',async()=>{ const time=now(); $('check-out-time').textContent=time; $('check-out').disabled=true; $('today-status').textContent='Đã hoàn thành'; $('today-note').textContent='Cảm ơn bạn, hẹn gặp lại!'; if(client&&currentAttendance?.id) await client.from('attendance').update({check_out:new Date().toISOString()}).eq('id',currentAttendance.id); });
 		$('refresh').addEventListener('click',()=>location.reload()); $('export').addEventListener('click',()=>alert('Báo cáo CSV sẽ được bật sau khi kết nối Supabase.'));
 		if(client) loadUser();
