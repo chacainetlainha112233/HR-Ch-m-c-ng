@@ -137,37 +137,67 @@
 
   const { data: { user } } = await client.auth.getUser();
   if (!user) return;
-$('login').classList.add('hidden');
-$('app').classList.remove('hidden');
-  // Tìm ca đang làm chưa check-out
-  const { data: activeAttendance, error } = await client
+
+  $('login').classList.add('hidden');
+  $('app').classList.remove('hidden');
+
+  // Lấy bản ghi chấm công mới nhất của hôm nay
+  const today = new Date().toLocaleDateString('en-CA');
+
+  const { data: todayAttendance, error } = await client
     .from('attendance')
     .select('*')
     .eq('user_id', user.id)
-    .is('check_out', null)
+    .eq('work_date', today)
     .order('check_in', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (error) {
-    console.error('Lỗi tải ca hiện tại:', error);
+    console.error('Lỗi tải ca hôm nay:', error);
     return;
   }
 
-  if (activeAttendance) {
-    currentAttendance = activeAttendance;
+  // Hôm nay chưa chấm công
+  if (!todayAttendance) {
+    currentAttendance = null;
+    $('check-in-time').textContent = '--:--';
+    $('check-out-time').textContent = '--:--';
+    $('check-in').disabled = false;
+    $('check-out').disabled = true;
+    $('today-status').textContent = 'Chưa vào ca';
+    return;
+  }
 
-    const checkInTime = new Date(activeAttendance.check_in);
+  currentAttendance = todayAttendance;
 
-    $('check-in-time').textContent = checkInTime.toLocaleTimeString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const checkInTime = new Date(todayAttendance.check_in);
 
+  $('check-in-time').textContent = checkInTime.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  // Đã bắt đầu nhưng chưa kết thúc
+  if (!todayAttendance.check_out) {
+    $('check-out-time').textContent = '--:--';
     $('check-in').disabled = true;
     $('check-out').disabled = false;
     $('today-status').textContent = 'Đang làm';
+    return;
   }
+
+  // Ca hôm nay đã hoàn thành
+  const checkOutTime = new Date(todayAttendance.check_out);
+
+  $('check-out-time').textContent = checkOutTime.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  $('check-in').disabled = true;
+  $('check-out').disabled = true;
+  $('today-status').textContent = 'Đã hoàn thành';
 }
 		$('login-form').addEventListener('submit', async event => { event.preventDefault(); $('login-error').textContent=''; if(!client) { $('login-error').textContent='Chưa có cấu hình Supabase. Hãy chọn bản demo.'; return; } const {error}=await client.auth.signInWithPassword({email:$('email').value,password:$('password').value}); if(error) $('login-error').textContent=error.message; else loadUser(); });
 		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView(currentUser); });
