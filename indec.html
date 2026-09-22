@@ -141,7 +141,28 @@
   renderHistory(history);
 		}
 
-		function renderEmployees() { $('employee-list').innerHTML=demoEmployees.map(e=>`<tr><td><div class="employee"><span class="mini-avatar">${e.initials}</span>${e.name}</div></td><td>${e.in}</td><td>${e.out}</td><td><span class="badge">${e.status}</span></td></tr>`).join(''); }
+		async function renderEmployees() {
+  if (!client) return;
+
+  const { data: employees, error } = await client
+    .from('employees')
+    .select('full_name, MSNV, role, status')
+    .order('id', { ascending: true });
+
+  if (error) {
+    console.error('Không tải được danh sách nhân viên:', error);
+    return;
+  }
+
+  $('employee-list').innerHTML = employees.map(employee => `
+    <tr>
+      <td>${employee.full_name || '-'}</td>
+      <td>${employee.MSNV || '-'}</td>
+      <td>${employee.role || 'employee'}</td>
+      <td><span class="badge">${employee.status || '-'}</span></td>
+    </tr>
+  `).join('');
+}
 		function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
 		async function loadUser() {
   if (!client) return;
@@ -247,11 +268,12 @@ $('user-avatar').textContent = employee.full_name
   await loadHistory();
 });
 
-$('admin-nav').addEventListener('click', () => {
+$('admin-nav').addEventListener('click',aysnc () => {
   $('overview-panel-wrap').style.display = 'none';
   $('history-panel').classList.add('hidden');
   $('admin-panel').classList.remove('hidden');
   $('admin-panel').style.display = 'block';
+	await renderEmployees();
 });
 		$('overview-nav').addEventListener('click', () => {
   $('history-panel').classList.add('hidden');
