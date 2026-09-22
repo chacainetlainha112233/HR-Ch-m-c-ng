@@ -35,6 +35,13 @@
 		#login { display:grid; place-items:center; min-height:100vh; padding:20px; background:radial-gradient(circle at 80% 15%,#f4d9b6 0,transparent 28%),#edf5ed; } .login-box { width:min(430px,100%); padding:38px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow); } .login-box .brand { margin:0 0 42px; color:var(--green); } .login-box h1 { font-size:28px; } .login-box p { color:var(--muted); line-height:1.6; } label { display:block; margin:19px 0 7px; color:#47534f; font-size:13px; font-weight:700; } input { width:100%; padding:12px 13px; border:1px solid var(--line); border-radius:8px; outline:none; } input:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--mint); } .login-box .primary { width:100%; margin-top:22px; padding:13px; } .login-note { margin-top:18px; text-align:center; font-size:12px; } .demo-link { color:var(--green); font-weight:700; cursor:pointer; }
 		@media (max-width:900px) { .shell { grid-template-columns:1fr; } .sidebar { padding:15px 18px; } .brand { margin:0 0 15px; } .side-label,.side-bottom { display:none; } .nav { display:flex; overflow:auto; } .nav button { white-space:nowrap; } main { padding:26px 18px; } .overview { grid-template-columns:1fr 1fr; } .grid { grid-template-columns:1fr; } }
 		@media (max-width:560px) { .topbar { display:block; } .top-actions { margin-top:18px; } .overview,.clock { grid-template-columns:1fr; } .panel { padding:16px; overflow:auto; } .admin-table { min-width:560px; } }
+	button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #d1d5db !important;
+  color: #6b7280 !important;
+  border-color: #d1d5db !important;
+}
 	</style>
 </head>
 <body>
