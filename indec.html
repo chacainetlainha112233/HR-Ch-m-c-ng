@@ -235,13 +235,21 @@ $('user-avatar').textContent = employee.full_name
 		$('login-form').addEventListener('submit', async event => { event.preventDefault(); $('login-error').textContent=''; if(!client) { $('login-error').textContent='Chưa có cấu hình Supabase. Hãy chọn bản demo.'; return; } const {error}=await client.auth.signInWithPassword({email:$('email').value,password:$('password').value}); if(error) $('login-error').textContent=error.message; else loadUser(); });
 		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView(currentUser); });
 		$('logout').addEventListener('click',async()=>{ if(client) await client.auth.signOut(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); });
-		$('history-nav').addEventListener('click', async () => {
-		$('overview-panel').classList.add('hidden')	
+	$('history-nav').addEventListener('click', async () => {
+  $('overview-panel').classList.add('hidden');
+  $('admin-panel').classList.add('hidden');
   $('history-panel').classList.remove('hidden');
   await loadHistory();
 });
+
+$('admin-nav').addEventListener('click', () => {
+  $('overview-panel').classList.add('hidden');
+  $('history-panel').classList.add('hidden');
+  $('admin-panel').classList.remove('hidden');
+});
 		$('overview-nav').addEventListener('click', () => {
   $('history-panel').classList.add('hidden');
+	$('admin-panel').classList.remove('hidden');	
   $('overview-panel').classList.remove('hidden');
 });
 		// CHECK-IN SUPABASE
