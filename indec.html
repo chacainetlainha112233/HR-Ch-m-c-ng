@@ -143,7 +143,6 @@
 
 		async function renderEmployees() {
   if (!client) return;
-
   const { data: employees, error } = await client
     .from('employees')
     .select('full_name, MSNV, role, status')
