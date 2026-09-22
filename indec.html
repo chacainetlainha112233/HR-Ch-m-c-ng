@@ -159,6 +159,11 @@ if (employeeError) {
 console.log('Nhân viên đang đăng nhập:', employee);
 			$('user-name').textContent = employee.full_name;
 $('user-role').textContent = employee.MSNV;
+			if (employee.role === 'admin') {
+  $('admin-nav').classList.remove('hidden');
+} else {
+  $('admin-nav').classList.add('hidden');
+}
 
 $('user-avatar').textContent = employee.full_name
   .split(' ')
