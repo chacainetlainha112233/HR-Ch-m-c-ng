@@ -143,9 +143,10 @@
 
 		async function renderEmployees() {
   if (!client) return;
+
   const { data: employees, error } = await client
     .from('employees')
-    .select('full_name, MSNV, role, status')
+    .select('full_name, MSNV, role')
     .order('id', { ascending: true });
 
   if (error) {
@@ -157,8 +158,8 @@
     <tr>
       <td>${employee.full_name || '-'}</td>
       <td>${employee.MSNV || '-'}</td>
-      <td>${employee.role || 'employee'}</td>
-      <td><span class="badge">${employee.status || '-'}</span></td>
+      <td>-</td>
+      <td><span class="badge">${employee.role || 'employee'}</span></td>
     </tr>
   `).join('');
 }
