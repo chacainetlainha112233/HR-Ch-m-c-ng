@@ -144,7 +144,19 @@
 
   const { data: { user } } = await client.auth.getUser();
   if (!user) return;
+const { data: employee, error: employeeError } = await client
+  .from('employees')
+  .select('*')
+  .eq('user_id', user.id)
+  .single();
 
+if (employeeError) {
+  console.error('Không tìm thấy nhân viên:', employeeError);
+  alert('Tài khoản này chưa được liên kết với nhân viên.');
+  return;
+}
+
+console.log('Nhân viên đang đăng nhập:', employee);
   $('login').classList.add('hidden');
   $('app').classList.remove('hidden');
 
