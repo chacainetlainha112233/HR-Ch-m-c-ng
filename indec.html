@@ -238,21 +238,25 @@ $('user-avatar').textContent = employee.full_name
 		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView(currentUser); });
 		$('logout').addEventListener('click',async()=>{ if(client) await client.auth.signOut(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); });
 	$('history-nav').addEventListener('click', async () => {
-  $('overview-panel').classList.add('hidden');
+  $('overview-panel').style.display = 'none';
   $('admin-panel').classList.add('hidden');
+  $('admin-panel').style.display = 'none';
   $('history-panel').classList.remove('hidden');
   await loadHistory();
 });
 
 $('admin-nav').addEventListener('click', () => {
-  $('overview-panel').classList.add('hidden');
+  $('overview-panel').style.display = 'none';
   $('history-panel').classList.add('hidden');
   $('admin-panel').classList.remove('hidden');
+  $('admin-panel').style.display = 'block';
 });
 		$('overview-nav').addEventListener('click', () => {
   $('history-panel').classList.add('hidden');
-	$('admin-panel').classList.remove('hidden');	
+  $('admin-panel').classList.add('hidden');
+  $('admin-panel').style.display = 'none';
   $('overview-panel').classList.remove('hidden');
+  $('overview-panel').style.display = '';
 });
 		// CHECK-IN SUPABASE
 		async function checkInSupabase() {
