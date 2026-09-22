@@ -157,6 +157,15 @@ if (employeeError) {
 }
 
 console.log('Nhân viên đang đăng nhập:', employee);
+			$('user-name').textContent = employee.full_name;
+$('user-role').textContent = employee.MSNV;
+
+$('user-avatar').textContent = employee.full_name
+  .split(' ')
+  .map(word => word[0])
+  .slice(-2)
+  .join('')
+  .toUpperCase();
   $('login').classList.add('hidden');
   $('app').classList.remove('hidden');
 
