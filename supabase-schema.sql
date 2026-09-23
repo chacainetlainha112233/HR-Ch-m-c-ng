@@ -1,5 +1,5 @@
 -- Run this once in Supabase SQL Editor.
-create type public.user_role as enum ('admin', 'employee');
+create type public.user_role as enum ('own', 'admin', 'employee');
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -39,7 +39,7 @@ alter table public.attendance enable row level security;
 
 create or replace function public.is_admin()
 returns boolean language sql security definer set search_path = public
-as $$ select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin'); $$;
+as $$ select exists (select 1 from public.profiles where id = auth.uid() and role in ('own', 'admin')); $$;
 
 create policy "Users can read their profile" on public.profiles for select using (id = auth.uid() or public.is_admin());
 create policy "Admins manage profiles" on public.profiles for all using (public.is_admin()) with check (public.is_admin());

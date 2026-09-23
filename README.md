@@ -22,6 +22,16 @@ Tạo repository GitHub, đẩy các file trong thư mục này lên, sau đó v
 
 Quyền admin không được quyết định bởi giao diện: bảng `profiles.role` và các policy RLS trong Supabase là lớp bảo vệ thực tế. Nhân viên chỉ đọc/ghi bản ghi chấm công của chính mình; admin đọc được toàn bộ dữ liệu.
 
+### Tạo 12 tài khoản mẫu
+
+Không đặt service role key trong HTML, `config.js` hoặc GitHub. Sau khi rotate key, tạo file `.env.local` từ `.env.local.example`, điền `SUPABASE_URL` và `SUPABASE_SERVICE_ROLE_KEY`, rồi chạy:
+
+```bash
+node provision-users.mjs
+```
+
+Script tạo `own@gmail.com` với role `own`, `admin@gmail.com` với role `admin`, và `test1@gmail.com` đến `test10@gmail.com` với role `employee`. Mật khẩu tạm được ghi vào `created-users.csv`, file này đã nằm trong `.gitignore`; gửi riêng cho từng người và yêu cầu đổi mật khẩu sau lần đăng nhập đầu tiên.
+
 ### Whitelist IP cho chấm công
 
 1. Sau schema ban đầu, chạy `whitelist-ip.sql` trong Supabase SQL Editor. Với dự án đã có bảng, chỉ chạy file mới này.
