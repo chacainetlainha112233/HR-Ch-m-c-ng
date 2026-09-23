@@ -1,0 +1,4 @@
+# The handler verifies the bearer token using auth.getUser before any operation.
+# Supports projects using the newer JWT signing keys as well.
+[functions.create-employee]
+verify_jwt = false

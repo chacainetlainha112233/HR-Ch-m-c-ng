@@ -1,0 +1,95 @@
+import ctypes as c, re
+from pathlib import Path
+j=c.CDLL('/System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore')
+p=c.c_void_p
+j.JSGlobalContextCreate.argtypes=[p]; j.JSGlobalContextCreate.restype=p
+j.JSStringCreateWithUTF8CString.argtypes=[c.c_char_p]; j.JSStringCreateWithUTF8CString.restype=p
+j.JSCheckScriptSyntax.argtypes=[p,p,p,c.c_int,c.POINTER(p)]; j.JSCheckScriptSyntax.restype=c.c_bool
+j.JSEvaluateScript.argtypes=[p,p,p,p,c.c_int,c.POINTER(p)]; j.JSEvaluateScript.restype=p
+j.JSValueToStringCopy.argtypes=[p,p,c.POINTER(p)]; j.JSValueToStringCopy.restype=p
+j.JSStringGetUTF8CString.argtypes=[p,c.c_char_p,c.c_size_t]
+ctx=j.JSGlobalContextCreate(None)
+def string(s): return j.JSStringCreateWithUTF8CString(s.encode())
+def message(v):
+    s=j.JSValueToStringCopy(ctx,v,None); b=c.create_string_buffer(4096); j.JSStringGetUTF8CString(s,b,4096); return b.value.decode()
+html=Path('indec.html').read_text()
+scripts=re.findall(r'<script>(.*?)</script>', html, re.S)
+for name, source in [('inline', '\n'.join(scripts))]+[(n,Path(n).read_text()) for n in ['employee-admin.js','whitelist-ip.js','admin-attendance.js','owner-approvals.js']]:
+    error=p()
+    assert j.JSCheckScriptSyntax(ctx,string(source),None,1,c.byref(error)), (name,message(error))
+    print('PASS syntax:',name)
+mock='''
+const elements = new Map();
+function element() { return {classList:{values:new Set(),add(x){this.values.add(x)},remove(x){this.values.delete(x)},toggle(x,on){on?this.add(x):this.remove(x)},contains(x){return this.values.has(x)}},replaceChildren(){},addEventListener(){},textContent:'',innerHTML:''}; }
+const stats=[element(),element(),element()];
+const document={getElementById(id){if(!elements.has(id)) elements.set(id,element()); return elements.get(id)},querySelectorAll(){return stats}};
+const window={dispatchEvent(){}};
+function Event() {}
+const location={reload(){}};
+function alert() {}
+'''
+test='''
+setView({id:'demo',name:'Admin',role:'admin'});
+if ($('admin-panel').classList.contains('hidden')) throw Error('Admin panel hidden');
+setView({id:'demo',name:'Own',role:'own'});
+if ($('admin-panel').classList.contains('hidden') || $('user-role').textContent !== 'Chủ sở hữu (own)') throw Error('Own role unavailable');
+setView({id:'demo',name:'Employee',role:'employee'});
+for(const id of ['admin-nav','admin-panel','export','schedule-panel']) if(!$(id).classList.contains('hidden')) throw Error('Employee can see '+id);
+if(stats.some(s=>!s.classList.contains('hidden'))) throw Error('Employee sees placeholder stats');
+if($('page-title').textContent !== 'Chấm công của tôi') throw Error('Wrong employee view');
+'''
+error=p(); j.JSEvaluateScript(ctx,string(mock+scripts[0]+test),None,None,1,c.byref(error))
+assert not error.value, message(error)
+print('PASS: switching admin to employee hides all administrative UI')
+
+source=Path('admin-attendance.js').read_text()
+helpers=source[source.index('  const localInput'):source.index('  let generation')]
+tests = r''' 
+function assert(value, label) { if (!value) throw Error(label); }
+assert(localInput('2026-09-20T01:00:00Z') === '2026-09-20T08:00:00', 'Vietnam time conversion');
+assert(hours({check_in:'2026-09-20T15:00:00Z',check_out:'2026-09-20T23:00:00Z'}) === '8.00', 'Overnight shift hours');
+assert(hours({check_in:'2026-09-20T15:00:00Z',check_out:null}) === '', 'Open shift hours');
+assert(csvCell('=1+1') === '"\'=1+1"', 'Formula neutralization');
+assert(csvCell('  @SUM(A1)') === '"\'  @SUM(A1)"', 'Leading spaces formula');
+assert(csvCell('a,"b"') === '"a,""b"""', 'CSV quoting');
+assert(csvCell('Nguyễn An') === '"Nguyễn An"', 'Vietnamese CSV text');
+'''
+error=p(); j.JSEvaluateScript(ctx,string(helpers+tests),None,None,1,c.byref(error))
+assert not error.value, message(error)
+print('PASS: report time conversion, overnight hours, CSV formula protection and quoting')
+# Execute the Edge Function with mocked Supabase calls; no network or accounts are created.
+edge = Path('supabase/functions/create-employee/index.ts').read_text()
+edge = re.sub(r"import .*?;\n", '', edge, count=1)
+edge = edge.replace('(status: number, body: unknown)', '(status, body)')
+edge = edge.replace("Deno.env.get('SUPABASE_URL')!", "Deno.env.get('SUPABASE_URL')")
+edge = edge.replace("Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!", "Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')")
+edge_mock = r'''
+let handler, principal, created=0, lastAttributes;
+const identities={own:{role:'own',is_active:true},admin:{role:'admin',is_active:true},allowed:{role:'admin',is_active:true},employee:{role:'employee',is_active:true},disabled:{role:'admin',is_active:false}};
+const Deno={serve(fn){handler=fn},env:{get(){return 'test'}}};
+class Response { constructor(body, options){this.status=options.status||200;this.body=body} }
+function createClient(){ return {
+ auth:{getUser:async token=>{principal=token;return {data:{user:identities[token]?{id:token}:null},error:null}},admin:{createUser:async attrs=>{created++;lastAttributes=attrs;return {data:{user:{id:'new-user',email:attrs.email}},error:null}}}},
+ from(table){return {select(){return this},eq(){return this},single:async()=>({data:identities[principal],error:null}),maybeSingle:async()=>({data:{can_create_employees:principal==='allowed'},error:null})}}
+};}
+const payload={email:'employee@example.invalid',full_name:'Nhân viên',password:'Test-password-123',role:'own'};
+function req(token){return {method:'POST',headers:{get(){return token ? 'Bearer '+token : null}},json:async()=>payload};}
+'''
+edge_tests = r'''
+let edgeResult='pending';
+(async()=>{
+ for(const [token,status] of [[null,401],['invalid',401],['employee',403],['disabled',403],['admin',403],['allowed',201],['own',201]]) {
+  const result=await handler(req(token)); if(result.status!==status) throw Error(token+': '+result.status+' != '+status);
+ }
+ if(created!==2) throw Error('Unauthorized creation occurred');
+ if(lastAttributes.role || lastAttributes.user_metadata.role) throw Error('Browser-supplied role trusted');
+ edgeResult='PASS';
+})().catch(error=>{edgeResult=String(error)});
+'''
+# Separate context avoids collision with browser helpers.
+ctx = j.JSGlobalContextCreate(None)
+error=p(); j.JSEvaluateScript(ctx,string(edge_mock+edge+edge_tests),None,None,1,c.byref(error))
+assert not error.value, message(error)
+result=j.JSEvaluateScript(ctx,string('edgeResult'),None,None,1,c.byref(error))
+assert message(result)=='PASS', message(result)
+print('PASS: creation endpoint rejects unauthenticated, employee, disabled and unapproved admin; permits own/approved admin')

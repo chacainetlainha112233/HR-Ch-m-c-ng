@@ -35,7 +35,10 @@
 		#login { display:grid; place-items:center; min-height:100vh; padding:20px; background:radial-gradient(circle at 80% 15%,#f4d9b6 0,transparent 28%),#edf5ed; } .login-box { width:min(430px,100%); padding:38px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow); } .login-box .brand { margin:0 0 42px; color:var(--green); } .login-box h1 { font-size:28px; } .login-box p { color:var(--muted); line-height:1.6; } label { display:block; margin:19px 0 7px; color:#47534f; font-size:13px; font-weight:700; } input { width:100%; padding:12px 13px; border:1px solid var(--line); border-radius:8px; outline:none; } input:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--mint); } .login-box .primary { width:100%; margin-top:22px; padding:13px; } .login-note { margin-top:18px; text-align:center; font-size:12px; } .demo-link { color:var(--green); font-weight:700; cursor:pointer; }
 		@media (max-width:900px) { .shell { grid-template-columns:1fr; } .sidebar { padding:15px 18px; } .brand { margin:0 0 15px; } .side-label,.side-bottom { display:none; } .nav { display:flex; overflow:auto; } .nav button { white-space:nowrap; } main { padding:26px 18px; } .overview { grid-template-columns:1fr 1fr; } .grid { grid-template-columns:1fr; } }
 		@media (max-width:560px) { .topbar { display:block; } .top-actions { margin-top:18px; } .overview,.clock { grid-template-columns:1fr; } .panel { padding:16px; overflow:auto; } .admin-table { min-width:560px; } }
-	</style>
+	    select, textarea { width:100%; padding:10px; border:1px solid var(--line); border-radius:8px; font:inherit; background:white; }
+        .admin-wide { grid-column:1/-1; } .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+        .table-scroll { overflow:auto; } button:disabled { opacity:.55; cursor:not-allowed; }
+        </style>
 </head>
 <body>
 	<section id="login">
@@ -50,49 +53,72 @@
 	</section>
 
 	<div id="app" class="shell hidden">
-		<aside class="sidebar"><div class="brand"><span class="brand-mark">✓</span> Giờ Công</div><p class="side-label">Không gian làm việc</p><nav class="nav"><button class="active"><span class="nav-icon">▦</span> Tổng quan</button><button><span class="nav-icon">◷</span> Lịch sử chấm công</button><button id="admin-nav" class="hidden"><span class="nav-icon">◎</span> Quản trị nhân sự</button></nav><div class="side-bottom"><div class="user-chip"><span class="avatar" id="user-avatar">AN</span><div><strong id="user-name">Admin</strong><small id="user-role">Quản trị viên</small></div></div><button class="logout" id="logout">↪ Đăng xuất</button></div></aside>
+		<aside class="sidebar"><div class="brand"><span class="brand-mark">✓</span> Giờ Công</div><p class="side-label">Không gian làm việc</p><nav class="nav"><button class="active" id="attendance-nav"><span class="nav-icon">▦</span> Chấm công</button><button id="history-nav"><span class="nav-icon">◷</span> Lịch sử của tôi</button><button id="admin-nav" class="hidden"><span class="nav-icon">◎</span> Quản trị nhân sự</button></nav><div class="side-bottom"><div class="user-chip"><span class="avatar" id="user-avatar">AN</span><div><strong id="user-name">Admin</strong><small id="user-role">Quản trị viên</small></div></div><button class="logout" id="logout">↪ Đăng xuất</button></div></aside>
 		<main><div class="topbar"><div><div class="eyebrow" id="page-eyebrow">Thứ hai, 21 tháng 9, 2026</div><h1 id="page-title">Tổng quan hôm nay</h1><div class="date" id="page-subtitle">Chúc bạn một ngày làm việc hiệu quả.</div></div><div class="top-actions"><button class="outline" id="refresh">↻ Làm mới</button><button class="primary" id="export">↓ Xuất báo cáo</button></div></div>
 			<div id="demo-notice" class="notice hidden">Bạn đang xem bản demo. Kết nối Supabase trong phần cấu hình để lưu dữ liệu thật.</div>
 			<section class="overview"><div class="stat featured"><div class="stat-label">Trạng thái hôm nay</div><div class="stat-value" id="today-status">Chưa vào ca</div><div class="stat-note" id="today-note">Bấm “Bắt đầu ca” khi bạn sẵn sàng.</div></div><div class="stat"><div class="stat-label">Giờ làm tuần này</div><div class="stat-value">32<span style="font-size:18px">h 40m</span></div><div class="stat-note">Mục tiêu 40 giờ</div></div><div class="stat"><div class="stat-label">Ngày công tháng này</div><div class="stat-value">18<span style="font-size:18px"> ngày</span></div><div class="stat-note">+2 so với tháng trước</div></div><div class="stat"><div class="stat-label">Đi muộn</div><div class="stat-value">01<span style="font-size:18px"> lần</span></div><div class="stat-note">Trong tháng 9</div></div></section>
 			<div class="grid"><section class="panel"><div class="panel-head"><h2>Chấm công hôm nay</h2><span class="badge">Đang hoạt động</span></div><div class="clock"><div class="clock-card"><p>Giờ vào</p><div class="clock-time" id="check-in-time">--:--</div><button class="primary" id="check-in">Bắt đầu ca</button></div><div class="clock-card"><p>Giờ ra</p><div class="clock-time" id="check-out-time">--:--</div><button class="outline" id="check-out" disabled>Kết thúc ca</button></div></div></section>
-				<section class="panel"><div class="panel-head"><h2>Ca làm sắp tới</h2><a>Xem lịch →</a></div><div class="entry"><div class="entry-date">HÔM NAY</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div><span class="badge">Đang diễn ra</span></div><div class="entry"><div class="entry-date">T3, 22/09</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div></div></section>
-				<section class="panel"><div class="panel-head"><h2>Lịch sử gần đây</h2><a>Xem tất cả →</a></div><div class="timeline" id="recent-list"></div></section>
-				<section class="panel hidden" id="admin-panel"><div class="panel-head"><h2>Nhân sự hôm nay</h2><span class="badge">24 nhân viên</span></div><table class="admin-table"><thead><tr><th>Nhân viên</th><th>Giờ vào</th><th>Giờ ra</th><th>Trạng thái</th></tr></thead><tbody id="employee-list"></tbody></table></section>
+				<section class="panel" id="schedule-panel"><div class="panel-head"><h2>Ca làm sắp tới</h2><a>Xem lịch →</a></div><div class="entry"><div class="entry-date">HÔM NAY</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div><span class="badge">Đang diễn ra</span></div><div class="entry"><div class="entry-date">T3, 22/09</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div></div></section>
+				<section class="panel" id="history-panel"><div class="panel-head"><h2>Lịch sử chấm công của tôi</h2></div><div class="timeline" id="recent-list"></div><button class="outline" id="history-prev">← Mới hơn</button> <button class="outline" id="history-next">Cũ hơn →</button></section>
+                <section class="panel hidden" id="admin-panel"><div class="panel-head"><h2>Danh sách nhân viên</h2><span class="badge" id="employee-count">Đang tải…</span></div><div class="table-scroll"><table class="admin-table"><thead><tr><th>Nhân viên</th><th>Phòng ban</th><th>Mã nhân viên</th></tr></thead><tbody id="employee-list"></tbody></table></div><p id="employee-list-status" role="status"></p><button class="outline" id="reload-employees">Làm mới danh sách</button></section>
 			</div>
 		</main>
 	</div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+
 	<script>
 		const SUPABASE_URL = window.SUPABASE_URL || '';
 		const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
 		const client = SUPABASE_URL && SUPABASE_ANON_KEY ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 		const demoHistory = [{ date:'Hôm nay', title:'Ca hành chính', time:'08:02 — Đang làm', status:'Đang làm' }, { date:'T6, 18/09', title:'Ca hành chính', time:'07:58 — 17:04', status:'Đủ công' }, { date:'T5, 17/09', title:'Ca hành chính', time:'08:11 — 17:00', status:'Đi muộn' }];
-		const demoEmployees = [{ name:'Nguyễn An', initials:'NA', in:'08:02', out:'—', status:'Đang làm' }, { name:'Trần Minh', initials:'TM', in:'07:56', out:'17:02', status:'Đủ công' }, { name:'Lê Hương', initials:'LH', in:'—', out:'—', status:'Chưa vào ca' }];
 		let currentUser = { id:'demo', name:'Nguyễn An', email:'demo@congty.vn', role:'employee' }, currentAttendance = null;
 		const $ = id => document.getElementById(id);
-		function setView(user) { currentUser=user; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('user-name').textContent=user.name; $('user-role').textContent=user.role==='admin'?'Quản trị viên':'Nhân viên'; $('user-avatar').textContent=user.name.split(' ').map(x=>x[0]).slice(-2).join(''); if(user.role==='admin') { $('admin-nav').classList.remove('hidden'); $('admin-panel').classList.remove('hidden'); renderEmployees(); } if (user.id === 'demo') {
-  renderHistory(demoHistory);
-} else {
-  loadHistory();
-}; }
-		function renderHistory(items) { $('recent-list').innerHTML=items.map(item=>`<div class="entry"><div class="entry-date">${item.date}</div><div><div class="entry-title">${item.title}</div><div class="entry-sub">${item.time}</div></div><span class="badge">${item.status}</span></div>`).join(''); }
+        let historyPage = 0, historyRequest = 0;
+        function setView(user) {
+          currentUser = user;
+          const isAdmin = ['admin','own'].includes(user.role);
+          $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+          $('user-name').textContent = user.name;
+          $('user-role').textContent = user.role === 'own' ? 'Chủ sở hữu (own)' : isAdmin ? 'Quản trị viên' : 'Nhân viên';
+          $('user-avatar').textContent = user.name.split(' ').map(x => x[0]).slice(-2).join('');
+          for (const id of ['admin-nav', 'admin-panel', 'export', 'schedule-panel']) $(id).classList.toggle('hidden', !isAdmin);
+          document.querySelectorAll('.stat:not(.featured)').forEach(el => el.classList.add('hidden'));
+          $('schedule-panel').classList.add('hidden');
+          $('demo-notice').classList.toggle('hidden', user.id !== 'demo');
+          $('page-title').textContent = isAdmin ? 'Tổng quan hôm nay' : 'Chấm công của tôi';
+          $('page-eyebrow').textContent = new Date().toLocaleDateString('vi-VN', {dateStyle:'full'});
+          $('employee-list').replaceChildren();
+          historyPage = 0;
+          $('recent-list').replaceChildren();
+          if (user.id === 'demo') {
+            renderHistory(demoHistory);
+            $('history-prev').disabled = $('history-next').disabled = true;
+          } else loadHistory();
+          window.dispatchEvent(new Event('attendance-user-change'));
+        }
+		function renderHistory(items) { $('recent-list').innerHTML=items.length ? items.map(item=>`<div class="entry"><div class="entry-date">${item.date}</div><div><div class="entry-title">${item.title}</div><div class="entry-sub">${item.time}</div></div><span class="badge">${item.status}</span></div>`).join('') : 'Chưa có lịch sử chấm công.'; }
         async function loadHistory() {
   if (!client || !currentUser || currentUser.id === 'demo') return;
 
+  const requestId = ++historyRequest;
+  const userId = currentUser.id;
+  $('history-prev').disabled = $('history-next').disabled = true;
   const { data, error } = await client
     .from('attendance')
     .select('id, work_date, check_in, check_out')
-    .eq('user_id', currentUser.id)
+    .eq('employee_id', userId)
     .order('work_date', { ascending: false })
-    .limit(5);
+    .range(historyPage * 20, historyPage * 20 + 20);
+
+  if (requestId !== historyRequest || currentUser.id !== userId) return;
+  $('history-prev').disabled = historyPage === 0;
 
   if (error) {
-    console.error('Lỗi tải lịch sử:', error);
+    $('recent-list').textContent = 'Không tải được lịch sử. Vui lòng làm mới trang.';
     return;
   }
 
-  const history = data.map(item => ({
+  $('history-next').disabled = data.length <= 20;
+  const history = data.slice(0, 20).map(item => ({
     date: item.work_date,
     title: 'Ca hành chính',
     time:
@@ -114,16 +140,23 @@
 
   renderHistory(history);
 }
-		function renderEmployees() { $('employee-list').innerHTML=demoEmployees.map(e=>`<tr><td><div class="employee"><span class="mini-avatar">${e.initials}</span>${e.name}</div></td><td>${e.in}</td><td>${e.out}</td><td><span class="badge">${e.status}</span></td></tr>`).join(''); }
 		function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
-		async function loadUser() { if(!client) return; const {data:{user}}=await client.auth.getUser(); if(!user) return; const {data:profile}=await client.from('profiles').select('full_name,role').eq('id',user.id).single(); setView({id:user.id,name:profile?.full_name||user.email.split('@')[0],email:user.email,role:profile?.role||'employee'}); }
+		async function loadUser() { if(!client) return; const {data:{user}}=await client.auth.getUser(); if(!user) return; const {data:profile}=await client.from('profiles').select('full_name,role,is_active').eq('id',user.id).single(); if (!profile || profile.is_active === false) { await client.auth.signOut(); $('login-error').textContent='Tài khoản chưa có hồ sơ hoặc đã bị khóa.'; return; } setView({id:user.id,name:profile?.full_name||user.email.split('@')[0],email:user.email,role:profile?.role||'employee'}); }
 		$('login-form').addEventListener('submit', async event => { event.preventDefault(); $('login-error').textContent=''; if(!client) { $('login-error').textContent='Chưa có cấu hình Supabase. Hãy chọn bản demo.'; return; } const {error}=await client.auth.signInWithPassword({email:$('email').value,password:$('password').value}); if(error) $('login-error').textContent=error.message; else loadUser(); });
-		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView(currentUser); });
-		$('logout').addEventListener('click',async()=>{ if(client) await client.auth.signOut(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); });
-		$('check-in').addEventListener('click',async()=>{ const time=now(); currentAttendance={check_in:time}; $('check-in-time').textContent=time; $('check-in').disabled=true; $('check-out').disabled=false; $('today-status').textContent='Đang làm việc'; $('today-note').textContent='Ca làm đang được ghi nhận.'; if(client&&currentUser.id!=='demo') { const {data}=await client.from('attendance').insert({user_id:currentUser.id,check_in:new Date().toISOString()}).select('id').single(); currentAttendance.id=data?.id; } });
-		$('check-out').addEventListener('click',async()=>{ const time=now(); $('check-out-time').textContent=time; $('check-out').disabled=true; $('today-status').textContent='Đã hoàn thành'; $('today-note').textContent='Cảm ơn bạn, hẹn gặp lại!'; if(client&&currentAttendance?.id) await client.from('attendance').update({check_out:new Date().toISOString()}).eq('id',currentAttendance.id); });
-		$('refresh').addEventListener('click',()=>location.reload()); $('export').addEventListener('click',()=>alert('Báo cáo CSV sẽ được bật sau khi kết nối Supabase.'));
-		if(client) loadUser();
+		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView({id:'demo',name:'Nguyễn An',email:'demo@congty.vn',role:'employee'}); });
+		$('logout').addEventListener('click',async()=>{ if(client) await client.auth.signOut(); historyRequest++; currentUser = {id:'demo',name:'Nguyễn An',role:'employee'}; currentAttendance = null; $('employee-list').replaceChildren(); $('recent-list').replaceChildren(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); });
+        $('history-prev').onclick = () => { if (historyPage > 0) { historyPage--; loadHistory(); } };
+        $('history-next').onclick = () => { historyPage++; loadHistory(); };
+        $('history-nav').onclick = () => $('history-panel').scrollIntoView({behavior:'smooth'});
+        $('attendance-nav').onclick = () => $('check-in').closest('section').scrollIntoView({behavior:'smooth'});
+        $('admin-nav').onclick = () => $('admin-panel').scrollIntoView({behavior:'smooth'});
+		$('refresh').addEventListener('click',()=>location.reload());
+
 	</script>
+	<script src="whitelist-ip.js"></script>
+	<script src="employee-admin.js"></script>
+	<script src="admin-attendance.js"></script>
+	<script src="owner-approvals.js"></script>
+	<script>if(client) loadUser();</script>
 </body>
 </html>
