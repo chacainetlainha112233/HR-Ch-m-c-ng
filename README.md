@@ -30,7 +30,16 @@ Không đặt service role key trong HTML, `config.js` hoặc GitHub. Sau khi ro
 node provision-users.mjs
 ```
 
-Script tạo `own@gmail.com` với role `own`, `admin@gmail.com` với role `admin`, và `test1@gmail.com` đến `test10@gmail.com` với role `employee`. Mật khẩu tạm được ghi vào `created-users.csv`, file này đã nằm trong `.gitignore`; gửi riêng cho từng người và yêu cầu đổi mật khẩu sau lần đăng nhập đầu tiên.
+Script tạo `own@gmail.com` với role `own`, `admin@gmail.com` với role `admin`, và `test1@gmail.com` đến `test10@gmail.com` với role `employee`. Mật khẩu khởi tạo là `123456`; hệ thống bắt buộc đổi sang mật khẩu mới tối thiểu 12 ký tự ngay sau đăng nhập. Mật khẩu được ghi vào `created-users.csv`, file này đã nằm trong `.gitignore`.
+
+Sau khi deploy, cần deploy thêm hai Edge Function:
+
+```bash
+supabase functions deploy create-employee
+supabase functions deploy change-password
+```
+
+Không dùng `123456` cho tài khoản nào khác và không gửi file `created-users.csv` lên GitHub.
 
 ### Whitelist IP cho chấm công
 

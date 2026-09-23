@@ -35,7 +35,7 @@ Deno.serve(async request => {
     }
     // The database trigger always assigns employee; never accept a role from the browser.
     const { data, error } = await admin.auth.admin.createUser({
-      email, password, email_confirm: true, user_metadata: { full_name: fullName },
+      email, password, email_confirm: true, user_metadata: { full_name: fullName }, app_metadata: { must_change_password: true },
     });
     if (error) return reply(400, { error: error.message });
     return reply(201, { id: data.user.id, email: data.user.email });

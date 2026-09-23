@@ -2,3 +2,6 @@
 # Supports projects using the newer JWT signing keys as well.
 [functions.create-employee]
 verify_jwt = false
+
+[functions.change-password]
+verify_jwt = false

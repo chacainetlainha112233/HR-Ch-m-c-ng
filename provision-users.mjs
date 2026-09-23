@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 function loadEnvFile(path) {
@@ -13,6 +12,7 @@ const env = { ...loadEnvFile('.env.local'), ...process.env };
 const supabaseUrl = env.SUPABASE_URL?.replace(/\/$/, '');
 const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !serviceRoleKey) throw new Error('Thiếu SUPABASE_URL hoặc SUPABASE_SERVICE_ROLE_KEY trong .env.local');
+const INITIAL_PASSWORD = '123456';
 
 const accounts = [
   { email: 'own@gmail.com', fullName: 'Owner', role: 'own' },
@@ -27,20 +27,18 @@ async function request(path, options = {}) {
   if (!response.ok) throw new Error(`${response.status}: ${body.msg || body.message || body.error_description || JSON.stringify(body)}`);
   return body;
 }
-function temporaryPassword() { return `Gc-${randomBytes(12).toString('base64url')}`; }
-
 const users = (await request('/auth/v1/admin/users?per_page=1000')).users || [];
 const credentials = [['email', 'temporary_password', 'role']];
 for (const account of accounts) {
   let user = users.find(item => item.email?.toLowerCase() === account.email);
   let created = false;
   if (!user) {
-    const password = temporaryPassword();
-    user = await request('/auth/v1/admin/users', { method: 'POST', body: JSON.stringify({ email: account.email, password, email_confirm: true, user_metadata: { full_name: account.fullName } }) });
+    user = await request('/auth/v1/admin/users', { method: 'POST', body: JSON.stringify({ email: account.email, password: INITIAL_PASSWORD, email_confirm: true, user_metadata: { full_name: account.fullName }, app_metadata: { must_change_password: true } }) });
     created = true;
-    credentials.push([account.email, password, account.role]);
+    credentials.push([account.email, INITIAL_PASSWORD, account.role]);
   } else {
-    credentials.push([account.email, 'already-existed', account.role]);
+    user = await request(`/auth/v1/admin/users/${user.id}`, { method: 'PUT', body: JSON.stringify({ password: INITIAL_PASSWORD, app_metadata: { ...user.app_metadata, must_change_password: true } }) });
+    credentials.push([account.email, INITIAL_PASSWORD, account.role]);
   }
   await request(`/rest/v1/profiles?on_conflict=id`, { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ id: user.id, full_name: account.fullName, role: account.role }) });
   console.log(`${created ? 'Created' : 'Updated'} ${account.email} -> ${account.role}`);
