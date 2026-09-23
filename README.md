@@ -40,6 +40,7 @@ supabase functions deploy change-password
 ```
 
 Không dùng `123456` cho tài khoản nào khác và không gửi file `created-users.csv` lên GitHub.
+Mật khẩu mới được lưu trong Supabase Auth bởi function `change-password`; nếu chưa deploy function, màn hình sẽ báo rõ và không giả lập việc đổi mật khẩu thành công.
 
 ### Whitelist IP cho chấm công
 
