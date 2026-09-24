@@ -19,9 +19,10 @@ Deno.serve(async request => {
     });
     const { data: { user }, error: authError } = await admin.auth.getUser(token);
     if (authError || !user) return reply(401, { error: 'Phiên đăng nhập không hợp lệ.' });
-    const { data: profile, error: profileError } = await admin.from('profiles').select('role,is_active').eq('id', user.id).single();
-    if (profileError || !profile?.is_active || !['admin','own'].includes(profile.role)) return reply(403, { error: 'Chỉ quản trị viên được tạo tài khoản.' });
-    if (profile.role !== 'own') {
+    const { data: profile, error: profileError } = await admin.from('profiles').select('role,is_active,department_id').eq('id', user.id).single();
+    if (profileError || !profile?.is_active || !['admin','own','manager'].includes(profile.role)) return reply(403, { error: 'Bạn không có quyền tạo tài khoản.' });
+    if (profile.role === 'manager' && !profile.department_id) return reply(403, { error: 'Manager cần được gán department trước.' });
+    if (profile.role === 'admin') {
       const {data: permission, error: permissionError} = await admin.from('admin_permissions').select('can_create_employees').eq('user_id',user.id).maybeSingle();
       if (permissionError || !permission?.can_create_employees) return reply(403, {error:'Cần own cấp quyền tạo nhân viên trước.'});
     }
@@ -38,6 +39,10 @@ Deno.serve(async request => {
       email, password, email_confirm: true, user_metadata: { full_name: fullName }, app_metadata: { must_change_password: true },
     });
     if (error) return reply(400, { error: error.message });
+    if (profile.role === 'manager') {
+      const { error: departmentError } = await admin.from('profiles').update({ department_id: profile.department_id }).eq('id', data.user.id);
+      if (departmentError) return reply(500, { error: 'Tạo tài khoản nhưng không gán được department.' });
+    }
     return reply(201, { id: data.user.id, email: data.user.email });
   } catch {
     return reply(500, { error: 'Không thể tạo tài khoản. Vui lòng thử lại.' });

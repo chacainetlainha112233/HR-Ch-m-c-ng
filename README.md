@@ -52,6 +52,14 @@ supabase functions deploy change-password
 
 Admin/own xem nhật ký tại bảng **Giám sát hoạt động** trong dashboard.
 
+### Admin và Manager
+
+Chạy thêm `manager-ops.sql` sau `owner-approvals.sql`, rồi deploy lại `create-employee`. Admin/own có thể tạo department, gán department, phân role `manager/admin/employee` và khóa/mở tài khoản. Manager chỉ thấy và vận hành nhân viên cùng department: thêm, sửa, khóa employee, xếp ca sáng `08:00–17:00`, ca tối `17:00–02:00`, điều chỉnh ca, duyệt phép và duyệt tăng ca. Hệ thống khóa thay vì xóa cứng để bảo toàn lịch sử chấm công. Quyền này được bảo vệ bởi RLS và RPC trong database, không chỉ bởi giao diện.
+
+```bash
+supabase functions deploy create-employee
+```
+
 ### Quy định thời gian ca
 
 Nhân viên chỉ được kết thúc ca sau tối thiểu 8 giờ kể từ lúc bắt đầu ca. Quy tắc được kiểm tra ở database, nên gọi REST API trực tiếp cũng không thể bỏ qua. Chạy thêm `minimum-shift.sql` sau `employee-permissions.sql` và `owner-approvals.sql`.
