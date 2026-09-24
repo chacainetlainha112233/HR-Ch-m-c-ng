@@ -133,3 +133,7 @@ Service-role key cho phép gọi API dữ liệu/Auth nhưng không tự cấp q
 
 
 Giao diện quản lý mở ngay đầu trang cho role `admin`, `own`, `manager` lấy từ `profiles`. Hồ sơ cũ chưa có `is_active`/`department_id` vẫn hiển thị vai trò thật và trang quản lý, nhưng tạm khóa nút ghi dữ liệu, kèm thông báo cần hoàn tất thiết lập. Lỗi tải hồ sơ hoặc tài khoản bị khóa vẫn không được vào ứng dụng. Tài khoản có role `employee` không được tự nhận quyền manager dựa trên tên/email.
+
+### Tab chức năng dạng lưới
+
+`page-tabs.js` chia giao diện thành các trang chức năng, chỉ mở một trang tại một thời điểm. Các ô tab hiển thị theo vai trò hiện tại; hỗ trợ phím mũi tên, Home/End, địa chỉ `#page=...` và Back/Forward. Khi đăng xuất hoặc đổi tài khoản, trang đang mở được kiểm tra lại theo quyền của tài khoản mới. Đây là thay đổi giao diện, không thay đổi quyền RLS hay quy trình duyệt.

@@ -14,7 +14,7 @@ def message(v):
     s=j.JSValueToStringCopy(ctx,v,None); b=c.create_string_buffer(4096); j.JSStringGetUTF8CString(s,b,4096); return b.value.decode()
 html=Path('indec.html').read_text()
 scripts=re.findall(r'<script>(.*?)</script>', html, re.S)
-for name, source in [('inline', '\n'.join(scripts))]+[(n,Path(n).read_text()) for n in ['employee-admin.js','whitelist-ip.js','admin-attendance.js','owner-approvals.js']]:
+for name, source in [('inline', '\n'.join(scripts))]+[(n,Path(n).read_text()) for n in ['employee-admin.js','whitelist-ip.js','admin-attendance.js','owner-approvals.js','page-tabs.js']]:
     error=p()
     assert j.JSCheckScriptSyntax(ctx,string(source),None,1,c.byref(error)), (name,message(error))
     print('PASS syntax:',name)
@@ -129,3 +129,53 @@ assert not error.value, message(error)
 result=j.JSEvaluateScript(ctx,string('accessResult'),None,None,1,c.byref(error))
 assert message(result)=='PASS', message(result)
 print('PASS: missing schema shows error, manager role/department retained, inactive user blocked')
+# Exercise the actual tab router against a minimal DOM, without network access.
+tab_mock = r'''
+const nodes=new Map(), events=new Map();
+class Node {
+ constructor(){this.children=[];this.attributes={};this.hidden=false;this.classList={toggle(){}};this.handlers={};}
+ append(...items){this.children.push(...items)}
+ before(node){this.beforeNode=node}
+ replaceChildren(...items){this.children=items}
+ setAttribute(key,value){this.attributes[key]=value}
+ addEventListener(event,fn){this.handlers[event]=fn}
+ focus(){this.focused=true}
+ set id(value){this._id=value;nodes.set(value,this)}
+ get id(){return this._id}
+}
+for(const id of ['page-host','page-title','page-subtitle','overview-nav','history-nav','admin-nav','approval-nav','open-system','open-employees','open-shifts','open-approvals','logout','management-home','overview-stats','attendance-panel','history-panel','admin-panel','create-employee-panel','admin-tools','manager-tools','employee-request-tools','approval-panel','audit-panel','schedule-panel']) {const n=new Node();n.id=id;}
+const $=id=>nodes.get(id);
+const document={createElement(){return new Node()}};
+const window={addEventListener(event,fn){events.set(event,fn)}};
+const location={hash:'',pathname:'/indec.html',search:''};
+const history={pushState(a,b,url){location.hash=url.startsWith('#')?url:''},replaceState(a,b,url){this.pushState(a,b,url)}};
+let currentUser={id:'admin-id',role:'admin'};
+'''
+tab_checks = r'''
+function assertTabs(condition,label){if(!condition)throw Error(label)}
+function visiblePages(){return [...nodes.values()].filter(n=>n.attributes.role==='tabpanel'&&!n.hidden)}
+events.get('attendance-user-change')();
+assertTabs(visiblePages().length===1&&!$('page-dashboard').hidden,'Admin landing');
+$('tab-employees').onclick();
+assertTabs(visiblePages().length===1&&!$('page-employees').hidden&&location.hash==='#page=employees','Exclusive page navigation');
+$('tab-history').onclick();
+assertTabs($('page-employees').hidden&&!$('page-history').hidden,'Previous page hidden');
+location.hash='#page=employees';events.get('popstate')();
+assertTabs(!$('page-employees').hidden,'Browser back');
+currentUser={id:'manager-id',role:'manager'};events.get('attendance-user-change')();
+$('admin-nav').onclick();
+assertTabs(!$('page-dashboard').hidden,'Manager navigation');
+location.hash='#page=system';events.get('hashchange')();
+assertTabs($('page-system').hidden,'Manager cannot open admin page by hash');
+currentUser={id:'employee-id',role:'employee'};events.get('attendance-user-change')();
+assertTabs(visiblePages().length===1&&!$('page-attendance').hidden,'Employee default and role reset');
+location.hash='#page=approvals';events.get('hashchange')();
+assertTabs($('page-approvals').hidden,'Employee cannot open owner page');
+$('tab-history').onkeydown({key:'Home',preventDefault(){}});
+assertTabs(!$('page-attendance').hidden,'Keyboard navigation');
+$('logout').handlers.click();assertTabs(visiblePages().length===0,'Logout hides pages');
+'''
+ctx=j.JSGlobalContextCreate(None)
+error=p();j.JSEvaluateScript(ctx,string(tab_mock+Path('page-tabs.js').read_text()+tab_checks),None,None,1,c.byref(error))
+assert not error.value,message(error)
+print('PASS: tab pages, role guards, browser back, keyboard navigation and logout')

@@ -43,6 +43,23 @@
         #management-description { color:var(--muted); line-height:1.6; }
         @media(max-width:900px) { .role-tools form { grid-template-columns:1fr 1fr; } }
         @media(max-width:560px) { .role-tools form { grid-template-columns:1fr; } }
+        .feature-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:24px; }
+        .feature-tab { display:flex; align-items:flex-start; gap:12px; min-height:108px; padding:18px; text-align:left; border:1px solid var(--line); border-radius:13px; background:#fff; color:var(--ink); transition:border-color .15s,background .15s; }
+        .feature-tab:hover { border-color:var(--green); background:#f0f8f3; }
+        .feature-tab[aria-selected="true"] { border-color:var(--green); background:var(--mint); box-shadow:inset 0 0 0 1px var(--green); }
+        .feature-tab:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+        .feature-icon { display:grid; place-items:center; flex:0 0 32px; height:32px; border-radius:9px; background:#edf5ed; color:var(--green); font-size:21px; }
+        .feature-tab strong { display:block; font-size:14px; line-height:1.4; }
+        .feature-tab small { display:block; margin-top:5px; font-size:12px; color:var(--muted); line-height:1.5; }
+        #page-host { display:block; }
+        .feature-page { display:grid; gap:18px; }
+        .feature-page[hidden] { display:none !important; }
+        .feature-page > .panel { min-width:0; overflow-x:auto; }
+        .feature-page .overview { margin-bottom:0; }
+        .feature-page .management-shortcuts { display:none; }
+        @media(max-width:1100px) { .feature-tabs { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        @media(max-width:700px) { .feature-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); } .feature-tab { padding:13px; min-height:96px; } }
+        @media(max-width:380px) { .feature-tabs { grid-template-columns:1fr; } }
 	</style>
 </head>
 <body>
@@ -67,7 +84,7 @@
 
 	<div id="app" class="shell hidden">
 		<aside class="sidebar"><div class="brand"><span class="brand-mark">✓</span> Giờ Công</div><p class="side-label">Không gian làm việc</p><nav class="nav"><button id="overview-nav" class="active"><span class="nav-icon">▦</span> Tổng quan</button><button id="history-nav"><span class="nav-icon">◷</span> Lịch sử chấm công</button><button id="admin-nav" class="hidden"><span class="nav-icon">◎</span> Quản trị nhân sự</button></nav><div class="side-bottom"><div class="user-chip"><span class="avatar" id="user-avatar">AN</span><div><strong id="user-name">Admin</strong><small id="user-role">Quản trị viên</small></div></div><button class="logout" id="change-password">⌁ Đổi mật khẩu</button><button class="logout" id="logout">↪ Đăng xuất</button></div></aside>
-		<main><div class="topbar"><div><div class="eyebrow" id="page-eyebrow">Thứ hai, 21 tháng 9, 2026</div><h1 id="page-title">Tổng quan hôm nay</h1><div class="date" id="page-subtitle">Chúc bạn một ngày làm việc hiệu quả.</div></div><div class="top-actions"><button class="outline" id="refresh">↻ Làm mới</button><button class="primary" id="export">↓ Xuất báo cáo</button></div></div>
+		<main><div class="topbar"><div><div class="eyebrow" id="page-eyebrow">Thứ hai, 21 tháng 9, 2026</div><h1 id="page-title" tabindex="-1">Tổng quan hôm nay</h1><div class="date" id="page-subtitle">Chúc bạn một ngày làm việc hiệu quả.</div></div><div class="top-actions"><button class="outline" id="refresh">↻ Làm mới</button><button class="primary" id="export">↓ Xuất báo cáo</button></div></div>
 			<div id="demo-notice" class="notice hidden">Bạn đang xem bản demo. Kết nối Supabase trong phần cấu hình để lưu dữ liệu thật.</div>
             <section id="management-home" class="panel hidden" style="margin-bottom:20px">
               <div class="panel-head"><h2 id="management-title">Không gian quản lý</h2><span class="badge" id="management-role"></span></div>
@@ -80,10 +97,10 @@
                 <button class="outline" id="open-approvals">Yêu cầu own duyệt</button>
               </div>
             </section>
-			<section class="overview"><div class="stat featured"><div class="stat-label">Trạng thái hôm nay</div><div class="stat-value" id="today-status">Chưa vào ca</div><div class="stat-note" id="today-note">Bấm “Bắt đầu ca” khi bạn sẵn sàng.</div></div><div class="stat"><div class="stat-label">Giờ làm tuần này</div><div class="stat-value">32<span style="font-size:18px">h 40m</span></div><div class="stat-note">Mục tiêu 40 giờ</div></div><div class="stat"><div class="stat-label">Ngày công tháng này</div><div class="stat-value">18<span style="font-size:18px"> ngày</span></div><div class="stat-note">+2 so với tháng trước</div></div><div class="stat"><div class="stat-label">Đi muộn</div><div class="stat-value">01<span style="font-size:18px"> lần</span></div><div class="stat-note">Trong tháng 9</div></div></section>
-			<div class="grid"><section class="panel"><div class="panel-head"><h2>Chấm công hôm nay</h2><span class="badge">Đang hoạt động</span></div><div class="clock"><div class="clock-card"><p>Giờ vào</p><div class="clock-time" id="check-in-time">--:--</div><button class="primary" id="check-in">Bắt đầu ca</button></div><div class="clock-card"><p>Giờ ra</p><div class="clock-time" id="check-out-time">--:--</div><button class="outline" id="check-out" disabled>Kết thúc ca</button></div></div></section>
+			<section class="overview" id="overview-stats"><div class="stat featured"><div class="stat-label">Trạng thái hôm nay</div><div class="stat-value" id="today-status">Chưa vào ca</div><div class="stat-note" id="today-note">Bấm “Bắt đầu ca” khi bạn sẵn sàng.</div></div><div class="stat"><div class="stat-label">Giờ làm tuần này</div><div class="stat-value">32<span style="font-size:18px">h 40m</span></div><div class="stat-note">Mục tiêu 40 giờ</div></div><div class="stat"><div class="stat-label">Ngày công tháng này</div><div class="stat-value">18<span style="font-size:18px"> ngày</span></div><div class="stat-note">+2 so với tháng trước</div></div><div class="stat"><div class="stat-label">Đi muộn</div><div class="stat-value">01<span style="font-size:18px"> lần</span></div><div class="stat-note">Trong tháng 9</div></div></section>
+			<div class="grid" id="page-host"><section class="panel" id="attendance-panel"><div class="panel-head"><h2>Chấm công hôm nay</h2><span class="badge">Đang hoạt động</span></div><div class="clock"><div class="clock-card"><p>Giờ vào</p><div class="clock-time" id="check-in-time">--:--</div><button class="primary" id="check-in">Bắt đầu ca</button></div><div class="clock-card"><p>Giờ ra</p><div class="clock-time" id="check-out-time">--:--</div><button class="outline" id="check-out" disabled>Kết thúc ca</button></div></div></section>
 				<section class="panel" id="schedule-panel"><div class="panel-head"><h2>Ca làm sắp tới</h2><a>Xem lịch →</a></div><div class="entry"><div class="entry-date">HÔM NAY</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div><span class="badge">Đang diễn ra</span></div><div class="entry"><div class="entry-date">T3, 22/09</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div></div></section>
-				<section class="panel"><div class="panel-head"><h2>Lịch sử gần đây</h2><a>Xem tất cả →</a></div><div class="timeline" id="recent-list"></div></section>
+				<section class="panel" id="history-panel"><div class="panel-head"><h2>Lịch sử gần đây</h2><a>Xem tất cả →</a></div><div class="timeline" id="recent-list"></div></section>
 				<section class="panel hidden" id="admin-panel"><div class="panel-head"><h2>Danh sách tài khoản</h2></div><table class="admin-table"><thead><tr><th>Nhân viên</th><th>Vai trò</th><th>Mã tài khoản</th><th>Trạng thái</th></tr></thead><tbody id="employee-list"></tbody></table></section>
 				<section class="panel hidden" id="audit-panel"><div class="panel-head"><h2>Giám sát hoạt động</h2><a id="audit-refresh">↻ Làm mới</a></div><table class="admin-table"><thead><tr><th>Thời gian</th><th>Người dùng</th><th>Sự kiện</th></tr></thead><tbody id="audit-list"></tbody></table></section>
 				<section class="panel hidden" id="admin-tools"><div class="panel-head"><h2>Quản trị hệ thống</h2><span class="badge">Admin / Own</span></div><div class="role-tools"><form id="department-form"><div><label for="department-name">Department</label><input id="department-name" placeholder="Ví dụ: Kinh doanh" required></div><div><label for="department-description">Mô tả</label><input id="department-description" placeholder="Mô tả ngắn"></div><button class="primary" type="submit">Thêm department</button></form><form id="role-form"><div><label for="role-user">User</label><select id="role-user" required></select></div><div><label for="role-value">Vai trò</label><select id="role-value"><option value="manager">Manager</option><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div><label for="role-department">Department</label><select id="role-department"><option value="">Chưa phân công</option></select></div><div><label for="role-active">Trạng thái</label><select id="role-active"><option value="true">Đang hoạt động</option><option value="false">Đã khóa</option></select></div><button class="primary" type="submit">Lưu quyền</button></form><p class="tool-status" id="admin-tools-status"></p></div></section>
@@ -272,6 +289,7 @@
 	</script>
 	<script src="employee-admin.js"></script>
 	<script src="owner-approvals.js"></script>
+	<script src="page-tabs.js"></script>
 	<script>if(client) loadUser();</script>
 </body>
 </html>

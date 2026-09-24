@@ -22,7 +22,7 @@
       <button class="outline">Gửi yêu cầu quyền</button>
     </form><p id="managed-status" role="status"></p>`;
   document.querySelector('main .grid').append(panel);
-  const nav = document.createElement('button'); nav.className='hidden'; nav.textContent='✓ Yêu cầu duyệt'; nav.onclick=()=>panel.scrollIntoView({behavior:'smooth'}); document.querySelector('.nav').append(nav);
+  const nav = document.createElement('button'); nav.id='approval-nav'; nav.className='hidden'; nav.textContent='✓ Yêu cầu duyệt'; nav.onclick=()=>panel.scrollIntoView({behavior:'smooth'}); document.querySelector('.nav').append(nav);
   const active = () => ['admin','own'].includes(currentUser.role) && currentUser.id !== 'demo';
   const actions = {attendance_save:'Bổ sung / sửa công',attendance_delete:'Xóa công',ip_add:'Thêm IP',ip_delete:'Xóa IP',profile_update:'Thay đổi tài khoản',permission_change:'Quyền tạo nhân viên'};
   const statuses = {pending:'Chờ duyệt',applied:'Đã thực hiện',rejected:'Từ chối',failed:'Thực hiện thất bại'};
