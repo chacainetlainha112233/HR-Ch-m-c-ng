@@ -36,7 +36,7 @@ begin
   if p_work_date is null or p_check_in is null or not isfinite(p_check_in)
     or (p_check_in at time zone 'Asia/Ho_Chi_Minh')::date <> p_work_date
     or p_check_in > now()
-    or (p_check_out is not null and (not isfinite(p_check_out) or p_check_out < p_check_in or p_check_out > now())) then
+    or (p_check_out is not null and (not isfinite(p_check_out) or p_check_out < p_check_in + interval '8 hours' or p_check_out > now())) then
     raise exception 'Ngày công/giờ vào/giờ ra không hợp lệ hoặc nằm trong tương lai.';
   end if;
   if p_reason is null or length(trim(p_reason)) = 0 or length(p_reason) > 1000 then

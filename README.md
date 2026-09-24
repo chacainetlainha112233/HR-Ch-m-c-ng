@@ -52,6 +52,10 @@ supabase functions deploy change-password
 
 Admin/own xem nhật ký tại bảng **Giám sát hoạt động** trong dashboard.
 
+### Quy định thời gian ca
+
+Nhân viên chỉ được kết thúc ca sau tối thiểu 8 giờ kể từ lúc bắt đầu ca. Quy tắc được kiểm tra ở database, nên gọi REST API trực tiếp cũng không thể bỏ qua. Chạy thêm `minimum-shift.sql` sau `employee-permissions.sql` và `owner-approvals.sql`.
+
 ### Whitelist IP cho chấm công
 
 1. Sau schema ban đầu, chạy `whitelist-ip.sql` trong Supabase SQL Editor. Với dự án đã có bảng, chỉ chạy file mới này.

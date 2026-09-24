@@ -55,6 +55,9 @@ begin
       or new.note is distinct from old.note then
       raise exception 'Bạn chỉ được kết thúc ca đang mở của chính mình; không được sửa lịch sử.' using errcode = '42501';
     end if;
+    if now() < old.check_in + interval '8 hours' then
+      raise exception 'Chưa đủ 8 giờ kể từ khi vào ca.' using errcode = '42501';
+    end if;
     new.check_out := now();
   end if;
   return new;
