@@ -26,6 +26,8 @@
     const selected = visible[0];
     if (selected) { $('managed-employee-name').value = selected.full_name; $('managed-employee-active').value = String(selected.is_active); }
   }
+  window.addEventListener('employees-changed',loadManagedEmployees);
+  window.addEventListener('approval-applied',loadManagedEmployees);
   $('managed-employee').onchange = async event => {
     const {data} = await client.from('profiles').select('full_name,is_active').eq('id', event.target.value).single();
     if (data) { $('managed-employee-name').value = data.full_name; $('managed-employee-active').value = String(data.is_active); }
@@ -37,7 +39,7 @@
     if(readError) { $('create-employee-status').textContent=readError.message; return; }
     const {error} = await client.rpc('manager_update_employee', {p_id:id, p_full_name:$('managed-employee-name').value.trim(), p_department_id:existing.department_id, p_is_active:$('managed-employee-active').value === 'true'});
     $('create-employee-status').textContent = error ? `Không cập nhật được: ${error.message}` : 'Đã cập nhật nhân viên.';
-    loadManagedEmployees();
+    if(!error) window.dispatchEvent(new Event('employees-changed'));
   };
   $('create-employee-form').onsubmit = async event => {
     event.preventDefault();

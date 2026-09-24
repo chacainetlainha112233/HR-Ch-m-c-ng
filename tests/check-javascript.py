@@ -23,7 +23,7 @@ const elements = new Map();
 function element() { return {classList:{values:new Set(),add(x){this.values.add(x)},remove(x){this.values.delete(x)},toggle(x,on){on?this.add(x):this.remove(x)},contains(x){return this.values.has(x)}},replaceChildren(){},addEventListener(){},textContent:'',innerHTML:''}; }
 const stats=[element(),element(),element()];
 const document={getElementById(id){if(!elements.has(id)) elements.set(id,element()); return elements.get(id)},querySelectorAll(){return stats}};
-const window={dispatchEvent(){}};
+const window={dispatchEvent(){},addEventListener(){}};
 function Event() {}
 const location={reload(){}};
 function alert() {}
@@ -179,3 +179,36 @@ ctx=j.JSGlobalContextCreate(None)
 error=p();j.JSEvaluateScript(ctx,string(tab_mock+Path('page-tabs.js').read_text()+tab_checks),None,None,1,c.byref(error))
 assert not error.value,message(error)
 print('PASS: tab pages, role guards, browser back, keyboard navigation and logout')
+directory_source=scripts[0][scripts[0].index('let directoryVersion='):scripts[0].index('function now()')]
+directory_mock=r'''
+const nodes=new Map();
+function node(){return {value:'',children:[],textContent:'',append(child){this.children.push(child)},add(child){this.children.push(child)},replaceChildren(...items){this.children=items;this.value=items[0]?.value||''}}}
+const $=id=>{if(!nodes.has(id))nodes.set(id,node());return nodes.get(id)};
+const document={createElement:node};
+function Option(text,value){this.text=text;this.value=value}
+const currentUser={id:'admin',role:'admin'};
+let records=[{id:'one',full_name:'Một',role:'employee',department_id:'a',is_active:true},{id:'two',full_name:'Hai',role:'manager',department_id:'b',is_active:false}];
+const client={from(){return {select(){return this},neq(){return this},order(){return this},range:async(a,b)=>({data:records.slice(a,b+1),error:null})}}};
+'''
+directory_tests=r'''
+let directoryResult='pending';
+(async()=>{
+ await renderEmployees();
+ if($('employee-list').children.length!==2||$('role-user').children.length!==3)throw Error('Directory and selector mismatch');
+ $('role-user').value='two';applySelectedRole();
+ if($('role-value').value!=='manager'||$('role-department').value!=='b'||$('role-active').value!=='false')throw Error('Selected profile not reflected');
+ records.push({id:'three',full_name:'Ba',role:'employee',is_active:true});
+ records[1]={...records[1],full_name:'Tên mới',role:'employee'};
+ await renderEmployees();
+ if($('employee-list').children.length!==3||$('role-user').children.length!==4||$('role-user').value!=='two'||$('role-value').value!=='employee')throw Error('Refresh loses selection or misses updates');
+ records=records.filter(row=>row.id!=='two');await renderEmployees();
+ if($('role-user').value!=='')throw Error('Deleted selection retained');
+ directoryResult='PASS';
+})().catch(error=>directoryResult=String(error));
+'''
+ctx=j.JSGlobalContextCreate(None)
+error=p();j.JSEvaluateScript(ctx,string(directory_mock+directory_source+directory_tests),None,None,1,c.byref(error))
+assert not error.value,message(error)
+result=j.JSEvaluateScript(ctx,string('directoryResult'),None,None,1,c.byref(error))
+assert message(result)=='PASS',message(result)
+print('PASS: shared employee list, selected access fields, new employees and selection preservation')

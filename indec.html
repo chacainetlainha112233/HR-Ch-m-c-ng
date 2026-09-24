@@ -103,7 +103,7 @@
 				<section class="panel" id="history-panel"><div class="panel-head"><h2>Lịch sử gần đây</h2><a>Xem tất cả →</a></div><div class="timeline" id="recent-list"></div></section>
 				<section class="panel hidden" id="admin-panel"><div class="panel-head"><h2>Danh sách tài khoản</h2></div><table class="admin-table"><thead><tr><th>Nhân viên</th><th>Vai trò</th><th>Mã tài khoản</th><th>Trạng thái</th></tr></thead><tbody id="employee-list"></tbody></table></section>
 				<section class="panel hidden" id="audit-panel"><div class="panel-head"><h2>Giám sát hoạt động</h2><a id="audit-refresh">↻ Làm mới</a></div><table class="admin-table"><thead><tr><th>Thời gian</th><th>Người dùng</th><th>Sự kiện</th></tr></thead><tbody id="audit-list"></tbody></table></section>
-				<section class="panel hidden" id="admin-tools"><div class="panel-head"><h2>Quản trị hệ thống</h2><span class="badge">Admin / Own</span></div><div class="role-tools"><form id="department-form"><div><label for="department-name">Department</label><input id="department-name" placeholder="Ví dụ: Kinh doanh" required></div><div><label for="department-description">Mô tả</label><input id="department-description" placeholder="Mô tả ngắn"></div><button class="primary" type="submit">Thêm department</button></form><form id="role-form"><div><label for="role-user">User</label><select id="role-user" required></select></div><div><label for="role-value">Vai trò</label><select id="role-value"><option value="manager">Manager</option><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div><label for="role-department">Department</label><select id="role-department"><option value="">Chưa phân công</option></select></div><div><label for="role-active">Trạng thái</label><select id="role-active"><option value="true">Đang hoạt động</option><option value="false">Đã khóa</option></select></div><button class="primary" type="submit">Lưu quyền</button></form><p class="tool-status" id="admin-tools-status"></p></div></section>
+				<section class="panel hidden" id="admin-tools"><div class="panel-head"><h2>Quản trị hệ thống</h2><span class="badge">Admin / Own</span></div><div class="role-tools"><form id="department-form"><div><label for="department-name">Department</label><input id="department-name" placeholder="Ví dụ: Kinh doanh" required></div><div><label for="department-description">Mô tả</label><input id="department-description" placeholder="Mô tả ngắn"></div><button class="primary" type="submit">Thêm department</button></form><form id="role-form"><div><label for="role-user">User · Danh sách nhân viên</label><select id="role-user" required></select><button class="outline" type="button" id="refresh-role-users" style="margin-top:8px">↻ Đồng bộ danh sách</button></div><div><label for="role-value">Vai trò</label><select id="role-value"><option value="manager">Manager</option><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div><label for="role-department">Department</label><select id="role-department"><option value="">Chưa phân công</option></select></div><div><label for="role-active">Trạng thái</label><select id="role-active"><option value="true">Đang hoạt động</option><option value="false">Đã khóa</option></select></div><button class="primary" type="submit">Lưu quyền</button></form><p class="tool-status" id="admin-tools-status"></p></div></section>
 				<section class="panel hidden" id="manager-tools"><div class="panel-head"><h2>Điều hành ca & yêu cầu</h2><span class="badge">Manager</span></div><div class="role-tools"><form id="shift-form"><div><label for="shift-user">Nhân viên</label><select id="shift-user" required></select></div><div><label for="shift-date">Ngày</label><input id="shift-date" type="date" required></div><div><label for="shift-type">Ca</label><select id="shift-type"><option value="morning">Ca sáng · 08:00–17:00</option><option value="evening">Ca tối · 17:00–02:00</option></select></div><button class="primary" type="submit">Xếp ca</button></form><div><h3>Yêu cầu chờ duyệt</h3><div class="table-scroll"><table class="admin-table"><thead><tr><th>Loại</th><th>Nhân viên</th><th>Chi tiết</th><th></th></tr></thead><tbody id="manager-requests"></tbody></table></div></div><p class="tool-status" id="manager-tools-status"></p></div></section>
 				<section class="panel hidden" id="employee-request-tools"><div class="panel-head"><h2>Gửi yêu cầu</h2><span class="badge">Chờ manager duyệt</span></div><div class="role-tools"><form id="leave-form"><div><label for="leave-from">Nghỉ từ ngày</label><input id="leave-from" type="date" required></div><div><label for="leave-to">Đến ngày</label><input id="leave-to" type="date" required></div><div><label for="leave-reason">Lý do</label><input id="leave-reason" required></div><button class="primary" type="submit">Gửi đơn nghỉ</button></form><form id="overtime-form"><div><label for="overtime-date">Ngày tăng ca</label><input id="overtime-date" type="date" required></div><div><label for="overtime-hours">Số giờ</label><input id="overtime-hours" type="number" min=".5" max="12" step=".5" required></div><div><label for="overtime-reason">Lý do</label><input id="overtime-reason" required></div><button class="primary" type="submit">Gửi tăng ca</button></form><p class="tool-status" id="request-tools-status"></p></div></section>
 			</div>
@@ -118,7 +118,7 @@
 		const demoEmployees = [{ name:'Nguyễn An', initials:'NA', in:'08:02', out:'—', status:'Đang làm' }, { name:'Trần Minh', initials:'TM', in:'07:56', out:'17:02', status:'Đủ công' }, { name:'Lê Hương', initials:'LH', in:'—', out:'—', status:'Chưa vào ca' }];
 		let currentUser = { id:'demo', name:'Nguyễn An', email:'demo@congty.vn', role:'employee' }, currentAttendance = null;
 		const $ = id => document.getElementById(id);
-		function setView(user) { currentUser=user; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('user-name').textContent=user.name; $('user-role').textContent=user.role==='own'?'Chủ sở hữu (own)':user.role==='admin'?'Quản trị viên':user.role==='manager'?'Manager':'Nhân viên'; $('user-avatar').textContent=user.name.split(' ').map(x=>x[0]).slice(-2).join(''); const canAdmin=['own','admin'].includes(user.role), canManage=['own','admin','manager'].includes(user.role); $('admin-nav').classList.toggle('hidden',!canManage); $('admin-panel').classList.toggle('hidden',!canAdmin); $('audit-panel').classList.toggle('hidden',!canAdmin); $('admin-tools').classList.toggle('hidden',!canAdmin); $('manager-tools').classList.toggle('hidden',!canManage); $('employee-request-tools').classList.toggle('hidden',user.role==='own'||user.role==='admin'||user.id==='demo'); $('export').classList.toggle('hidden',!canManage); $('schedule-panel').classList.toggle('hidden',!canManage); document.querySelectorAll('.stat').forEach(stat=>stat.classList.toggle('hidden',!canManage)); $('page-title').textContent=canAdmin?'Quản trị hệ thống':user.role==='manager'?'Điều hành nhân viên':'Chấm công của tôi'; $('password-modal').classList.add('hidden'); if(canAdmin) { renderEmployees(); loadAuditLogs(); } if(canManage) loadRoleTools(); if(user.id==='demo') renderHistory(demoHistory); else { $('recent-list').replaceChildren(); loadHistory(); } window.dispatchEvent(new Event('attendance-user-change')); renderManagementHome(user); }
+		function setView(user) { directoryVersion++; roleLoadVersion++; directoryProfiles=[]; $('role-user').replaceChildren(); currentUser=user; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('user-name').textContent=user.name; $('user-role').textContent=user.role==='own'?'Chủ sở hữu (own)':user.role==='admin'?'Quản trị viên':user.role==='manager'?'Manager':'Nhân viên'; $('user-avatar').textContent=user.name.split(' ').map(x=>x[0]).slice(-2).join(''); const canAdmin=['own','admin'].includes(user.role), canManage=['own','admin','manager'].includes(user.role); $('admin-nav').classList.toggle('hidden',!canManage); $('admin-panel').classList.toggle('hidden',!canAdmin); $('audit-panel').classList.toggle('hidden',!canAdmin); $('admin-tools').classList.toggle('hidden',!canAdmin); $('manager-tools').classList.toggle('hidden',!canManage); $('employee-request-tools').classList.toggle('hidden',user.role==='own'||user.role==='admin'||user.id==='demo'); $('export').classList.toggle('hidden',!canManage); $('schedule-panel').classList.toggle('hidden',!canManage); document.querySelectorAll('.stat').forEach(stat=>stat.classList.toggle('hidden',!canManage)); $('page-title').textContent=canAdmin?'Quản trị hệ thống':user.role==='manager'?'Điều hành nhân viên':'Chấm công của tôi'; $('password-modal').classList.add('hidden'); if(canAdmin) { loadAuditLogs(); } if(canManage) loadRoleTools(); if(user.id==='demo') renderHistory(demoHistory); else { $('recent-list').replaceChildren(); loadHistory(); } window.dispatchEvent(new Event('attendance-user-change')); renderManagementHome(user); }
 		function renderHistory(items) { $('recent-list').innerHTML=items.map(item=>`<div class="entry"><div class="entry-date">${item.date}</div><div><div class="entry-title">${item.title}</div><div class="entry-sub">${item.time}</div></div><span class="badge">${item.status}</span></div>`).join(''); }
         function renderManagementHome(user) {
           const admin=['own','admin'].includes(user.role), manager=user.role==='manager';
@@ -135,37 +135,35 @@
           document.querySelectorAll('#admin-tools form button, #manager-tools form button, #create-employee-panel form button, #approval-panel form button').forEach(button=>{button.disabled=unavailable;});
         }
         async function loadRoleTools() {
-          if (!client || currentUser.id === 'demo' || currentUser.managementReady===false) return;
-          const userId = currentUser.id;
+          if (!client || currentUser.id === 'demo') return;
+          if (currentUser.managementReady===false) { await renderEmployees(); return; }
+          const userId = currentUser.id, requestVersion=++roleLoadVersion;
           const canAdmin = ['own','admin'].includes(currentUser.role);
           if (!canAdmin && currentUser.role !== 'manager') return;
           $('admin-tools-status').textContent = $('manager-tools-status').textContent = '';
-          const controls = ['shift-user','role-user','role-department'];
+          const controls = ['shift-user','role-department'];
           controls.forEach(id => $(id).replaceChildren());
           try {
             const results = await Promise.all([
-              client.from('profiles').select('id,full_name,role,is_active,department_id').neq('role','own').order('full_name'),
+              renderEmployees(),
               client.from('departments').select('id,name').eq('is_active',true).order('name'),
               client.from('leave_requests').select('id,employee_id,from_date,to_date,reason,profiles!leave_requests_employee_id_fkey(full_name)').eq('status','pending').order('created_at',{ascending:false}).limit(50),
               client.from('overtime_requests').select('id,employee_id,work_date,hours,reason,profiles!overtime_requests_employee_id_fkey(full_name)').eq('status','pending').order('created_at',{ascending:false}).limit(50),
             ]);
-            if (currentUser.id !== userId) return;
-            const failed = results.find(result => result.error);
+            if (currentUser.id !== userId || requestVersion!==roleLoadVersion) return;
+            const failed = results.slice(0,2).find(result => result.error);
             if (failed) throw failed.error;
             const [profiles, departments, leave, overtime] = results.map(result => result.data || []);
             const employees = profiles.filter(profile => profile.role === 'employee' && profile.is_active);
             const visible = currentUser.role === 'manager' ? employees.filter(profile => currentUser.departmentId && profile.department_id === currentUser.departmentId) : employees;
             for (const profile of visible) $('shift-user').add(new Option(profile.full_name,profile.id));
             if (canAdmin) {
-              for (const profile of profiles) $('role-user').add(new Option(`${profile.full_name} · ${profile.role}`,profile.id));
               $('role-department').add(new Option('Chưa phân công',''));
               for (const department of departments) $('role-department').add(new Option(department.name,department.id));
-              $('role-user').onchange = () => {
-                const profile = profiles.find(item => item.id === $('role-user').value);
-                if (profile) { $('role-value').value=profile.role; $('role-active').value=String(profile.is_active); $('role-department').value=profile.department_id || ''; }
-              };
-              $('role-user').onchange();
+              applySelectedRole();
             }
+            const requestError=results.slice(2).find(result=>result.error);
+            if(requestError) { $('manager-tools-status').textContent=`Không tải được yêu cầu: ${requestError.error.message}`; $('manager-requests').replaceChildren(); return; }
             const requests = [...leave.map(row => ({...row,kind:'leave',detail:`Phép ${row.from_date} → ${row.to_date}: ${row.reason}`})), ...overtime.map(row => ({...row,kind:'overtime',detail:`${row.hours} giờ ngày ${row.work_date}: ${row.reason}`}))];
             $('manager-requests').replaceChildren();
             for (const row of requests) {
@@ -185,7 +183,7 @@
             if (currentUser.role === 'manager' && !currentUser.departmentId) $('manager-tools-status').textContent='Manager chưa được gán phòng ban. Cần own phân công phòng ban trước khi quản lý nhân viên.';
             else if (!visible.length) $('manager-tools-status').textContent='Chưa có nhân viên đang hoạt động thuộc phạm vi quản lý.';
           } catch (error) {
-            if (currentUser.id !== userId) return;
+            if (currentUser.id !== userId || requestVersion!==roleLoadVersion) return;
             const message=`Không tải được quyền quản lý: ${error.message}. Kiểm tra các migration Supabase trong README.`;
             $('admin-tools-status').textContent=$('manager-tools-status').textContent=message;
             $('manager-requests').replaceChildren();
@@ -230,19 +228,51 @@
 
   renderHistory(history);
 }
+        let directoryVersion=0, roleLoadVersion=0, directoryProfiles=[];
+        function applySelectedRole() {
+          const profile=directoryProfiles.find(item=>item.id===$('role-user').value);
+          if (!profile) return;
+          $('role-value').value=profile.role;
+          $('role-active').value=String(profile.is_active!==false);
+          $('role-department').value=profile.department_id || '';
+        }
         async function renderEmployees() {
-          if (!client || currentUser.id==='demo' || !['own','admin'].includes(currentUser.role)) return;
-          const userId=currentUser.id;
-          const {data,error}=await client.from('profiles').select('id,full_name,role,is_active').neq('role','own').order('full_name');
-          if (currentUser.id!==userId) return;
-          $('employee-list').replaceChildren();
-          if (error) { $('employee-list').textContent=`Không tải được nhân viên: ${error.message}`; return; }
-          for (const profile of data) {
-            const row=document.createElement('tr');
-            for (const value of [profile.full_name,profile.role,profile.id,profile.is_active?'Đang hoạt động':'Đã khóa']) {
-              const cell=document.createElement('td'); cell.textContent=value; row.append(cell);
+          if (!client || currentUser.id==='demo' || !['own','admin','manager'].includes(currentUser.role)) return {data:[],error:null};
+          const userId=currentUser.id, version=++directoryVersion, selected=$('role-user').value;
+          try {
+            const profiles=[];
+            let offset=0;
+            while(true) {
+              const {data,error}=await client.from('profiles').select('*').neq('role','own').order('full_name').order('id').range(offset,offset+499);
+              if(error) throw error;
+              if(currentUser.id!==userId || version!==directoryVersion) return {data:[],error:null};
+              profiles.push(...data); offset+=data.length;
+              if(!data.length) break;
             }
-            $('employee-list').append(row);
+            directoryProfiles=profiles;
+            $('employee-list').replaceChildren();
+            for(const profile of profiles) {
+              const row=document.createElement('tr');
+              for(const value of [profile.full_name,profile.role,profile.id,profile.is_active===false?'Đã khóa':'Đang hoạt động']) {
+                const cell=document.createElement('td');cell.textContent=value;row.append(cell);
+              }
+              $('employee-list').append(row);
+            }
+            if(['own','admin'].includes(currentUser.role)) {
+              $('role-user').replaceChildren(new Option(profiles.length?'Chọn nhân viên để phân quyền':'Chưa có nhân viên',''));
+              for(const profile of profiles) $('role-user').add(new Option(`${profile.full_name} · ${profile.role} · ${profile.id.slice(0,8)}${profile.is_active===false?' · Đã khóa':''}`,profile.id));
+              if(profiles.some(profile=>profile.id===selected)) $('role-user').value=selected;
+              else $('role-user').value='';
+              $('role-user').onchange=applySelectedRole;
+              applySelectedRole();
+            }
+            return {data:profiles,error:null};
+          } catch(error) {
+            if(currentUser.id===userId && version===directoryVersion) {
+              directoryProfiles=[];$('role-user').replaceChildren(new Option('Không tải được danh sách',''));
+              $('employee-list').textContent=`Không tải được nhân viên: ${error.message}`;
+            }
+            return {data:[],error};
           }
         }
 		function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
@@ -268,6 +298,9 @@
 		document.querySelectorAll('.password-toggle').forEach(button=>button.addEventListener('click',()=>{ const input=$(button.dataset.target); const showing=input.type==='text'; input.type=showing?'password':'text'; button.textContent=showing?'Hiện':'Ẩn'; button.setAttribute('aria-label',showing?'Hiện mật khẩu':'Ẩn mật khẩu'); }));
 		$('change-password').addEventListener('click',()=>{ $('password-error').textContent=''; $('password-form').reset(); $('password-modal').classList.remove('hidden'); $('new-password').focus(); });
 		$('cancel-password').addEventListener('click',()=>{ $('password-modal').classList.add('hidden'); $('password-form').reset(); });
+        $('refresh-role-users').onclick=()=>loadRoleTools();
+        window.addEventListener('employees-changed',loadRoleTools);
+        window.addEventListener('approval-applied',loadRoleTools);
         $('admin-nav').onclick=()=>$('management-home').scrollIntoView({behavior:'smooth'});
         $('overview-nav').onclick=()=>$('page-title').scrollIntoView({behavior:'smooth'});
         $('history-nav').onclick=()=>$('recent-list').scrollIntoView({behavior:'smooth'});
@@ -276,7 +309,7 @@
         }
 		$('audit-refresh').addEventListener('click',loadAuditLogs);
 		$('department-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.from('departments').insert({name:$('department-name').value.trim(),description:$('department-description').value.trim()}); $('admin-tools-status').textContent=error?`Không thể thêm department: ${error.message}`:'Đã thêm department.'; if(!error) event.target.reset(); });
-		$('role-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.rpc('admin_update_user_access',{p_id:$('role-user').value,p_role:$('role-value').value,p_is_active:$('role-active').value==='true',p_department_id:$('role-department').value||null}); $('admin-tools-status').textContent=error?`Không thể lưu quyền: ${error.message}`:'Đã cập nhật role, department và trạng thái.'; if(!error) loadRoleTools(); });
+		$('role-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.rpc('admin_update_user_access',{p_id:$('role-user').value,p_role:$('role-value').value,p_is_active:$('role-active').value==='true',p_department_id:$('role-department').value||null}); $('admin-tools-status').textContent=error?`Không thể lưu quyền: ${error.message}`:'Đã cập nhật role, department và trạng thái.'; if(!error) window.dispatchEvent(new Event('employees-changed')); });
 		$('shift-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.rpc('manager_save_shift',{p_employee:$('shift-user').value,p_work_date:$('shift-date').value,p_shift:$('shift-type').value,p_note:null}); $('manager-tools-status').textContent=error?`Không thể xếp ca: ${error.message}`:'Đã xếp ca thành công.'; });
 		$('leave-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.from('leave_requests').insert({employee_id:currentUser.id,from_date:$('leave-from').value,to_date:$('leave-to').value,reason:$('leave-reason').value.trim()}); $('request-tools-status').textContent=error?`Không thể gửi đơn: ${error.message}`:'Đã gửi đơn nghỉ phép.'; if(!error) event.target.reset(); });
 		$('overtime-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.from('overtime_requests').insert({employee_id:currentUser.id,work_date:$('overtime-date').value,hours:Number($('overtime-hours').value),reason:$('overtime-reason').value.trim()}); $('request-tools-status').textContent=error?`Không thể gửi yêu cầu: ${error.message}`:'Đã gửi yêu cầu tăng ca.'; if(!error) event.target.reset(); });
