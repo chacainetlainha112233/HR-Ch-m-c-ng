@@ -42,6 +42,16 @@ supabase functions deploy change-password
 Không dùng `123456` cho tài khoản nào khác và không gửi file `created-users.csv` lên GitHub. Việc đổi mật khẩu là tùy chọn, không bắt buộc ngay sau đăng nhập.
 Mật khẩu mới được lưu trong Supabase Auth bởi function `change-password`; nếu chưa deploy function, màn hình sẽ báo rõ và không giả lập việc đổi mật khẩu thành công.
 
+### Audit đăng nhập và bảo mật
+
+Chạy `audit-logs.sql` trong Supabase SQL Editor sau schema nền. Hệ thống ghi `login`, `logout` và `password_change` vào `audit_logs`. Chỉ tài khoản `admin` hoặc `own` được đọc nhật ký; nhân viên không thể đọc, sửa hoặc xóa log. Sau khi chạy SQL, deploy lại function:
+
+```bash
+supabase functions deploy change-password
+```
+
+Admin/own xem nhật ký tại bảng **Giám sát hoạt động** trong dashboard.
+
 ### Whitelist IP cho chấm công
 
 1. Sau schema ban đầu, chạy `whitelist-ip.sql` trong Supabase SQL Editor. Với dự án đã có bảng, chỉ chạy file mới này.
