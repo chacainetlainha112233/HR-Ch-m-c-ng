@@ -54,7 +54,7 @@ Admin/own xem nhật ký tại bảng **Giám sát hoạt động** trong dashbo
 
 ### Admin và Manager
 
-Chạy thêm `manager-ops.sql` sau `owner-approvals.sql`, rồi deploy lại `create-employee`. Admin/own có thể tạo department, gán department, phân role `manager/admin/employee` và khóa/mở tài khoản. Manager chỉ thấy và vận hành nhân viên cùng department: thêm, sửa, khóa employee, xếp ca sáng `08:00–17:00`, ca tối `17:00–02:00`, điều chỉnh ca, duyệt phép và duyệt tăng ca. Hệ thống khóa thay vì xóa cứng để bảo toàn lịch sử chấm công. Quyền này được bảo vệ bởi RLS và RPC trong database, không chỉ bởi giao diện.
+Chạy `manager-role.sql` trước, chờ báo thành công, sau đó chạy `manager-ops.sql` sau `owner-approvals.sql`, rồi deploy lại `create-employee`. Admin/own có thể tạo department, gán department, phân role `manager/admin/employee` và khóa/mở tài khoản. Manager chỉ thấy và vận hành nhân viên cùng department: thêm, sửa, khóa employee, xếp ca sáng `08:00–17:00`, ca tối `17:00–02:00`, điều chỉnh ca, duyệt phép và duyệt tăng ca. Hệ thống khóa thay vì xóa cứng để bảo toàn lịch sử chấm công. Quyền này được bảo vệ bởi RLS và RPC trong database, không chỉ bởi giao diện.
 
 ```bash
 supabase functions deploy create-employee
@@ -120,3 +120,16 @@ API tạo người dùng chỉ chạy phía máy chủ theo [Supabase admin.crea
 Cơ chế bảo vệ: RLS chặn ghi trực tiếp các bảng quản trị; RPC sửa công cũ bị thu hồi quyền gọi; bảng yêu cầu không cho trình duyệt tự INSERT/UPDATE/DELETE; RPC kiểm tra vai trò đang có trong `profiles`, không tin role do trình duyệt gửi. Service-role key/SQL Editor vẫn là quyền vận hành tin cậy, không phân phối cho admin ứng dụng.
 
 Kiểm thử tích hợp: chạy `tests/owner-approvals.sql` trên **project thử nghiệm** sau các migration. Script tạo dữ liệu tạm, kiểm tra chặn API trực tiếp, tự nâng quyền, admin tự duyệt, duyệt lặp, từ chối, xung đột dữ liệu, cấp quyền và giới hạn nhân viên; cuối cùng rollback. Cần kiểm tra thêm Edge Function: admin chưa được cấp quyền trả 403; sau own duyệt thì tạo được; khi thu hồi quyền/khóa admin thì trả 403.
+
+### Chẩn đoán admin/manager không thao tác được
+
+Nếu API báo thiếu `profiles.is_active`, `profiles.department_id`, bảng `departments`/`leave_requests`/`overtime_requests`, cơ sở dữ liệu chưa áp dụng migration của giao diện. Đặc biệt nếu `attendance` chỉ có `user_id` còn mã nguồn dùng `employee_id`, không chạy lại `supabase-schema.sql` lên dữ liệu đang dùng: cần đối chiếu schema trước khi nâng cấp. Chạy `diagnose-management.sql` trong SQL Editor để lấy danh sách cột, ràng buộc và policy (chỉ đọc); dùng kết quả để lập migration bảo toàn dữ liệu cũ.
+
+Giao diện hiện báo rõ lỗi tải hồ sơ/quyền, không tự đổi một admin thành employee khi truy vấn schema thất bại. Form tạo nhân viên và hộp duyệt own được nạp qua `employee-admin.js` và `owner-approvals.js`. Lỗi API quản lý không còn bị che thành danh sách rỗng.
+
+Sau khi schema nền đã đồng bộ, chạy `manager-role.sql` riêng trước `manager-ops.sql`. Manager cần `role='manager'`, `is_active=true`, `department_id` hợp lệ và nhân viên thuộc cùng department. Policy đọc profiles phải có cả phần cho phép và phần giới hạn; file manager đã bổ sung phần cho phép đọc nhân viên cùng phòng. Truy vấn phép/tăng ca chỉ rõ khóa ngoại employee để không bị nhầm với khóa ngoại người duyệt.
+
+Service-role key cho phép gọi API dữ liệu/Auth nhưng không tự cấp quyền chạy DDL/migration. Thay đổi quyền và phòng ban phải do own phê duyệt theo quy trình; không sửa role hàng loạt để né lỗi schema.
+
+
+Giao diện quản lý mở ngay đầu trang cho role `admin`, `own`, `manager` lấy từ `profiles`. Hồ sơ cũ chưa có `is_active`/`department_id` vẫn hiển thị vai trò thật và trang quản lý, nhưng tạm khóa nút ghi dữ liệu, kèm thông báo cần hoàn tất thiết lập. Lỗi tải hồ sơ hoặc tài khoản bị khóa vẫn không được vào ứng dụng. Tài khoản có role `employee` không được tự nhận quyền manager dựa trên tên/email.

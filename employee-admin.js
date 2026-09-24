@@ -13,13 +13,16 @@
   window.addEventListener('attendance-user-change', () => {
     panel.classList.toggle('hidden', !['admin','own','manager'].includes(currentUser.role) || currentUser.id === 'demo');
     $('create-employee-form').reset(); $('create-employee-status').textContent = '';
+    if(currentUser.managementReady===false) { $('create-employee-status').textContent=currentUser.schemaWarning; return; }
     loadManagedEmployees();
   });
   async function loadManagedEmployees() {
     if (!client || !['admin','own','manager'].includes(currentUser.role) || currentUser.id === 'demo') return;
-    const {data} = await client.from('profiles').select('id,full_name,is_active,department_id').eq('role','employee').order('full_name');
+    const {data,error} = await client.from('profiles').select('id,full_name,is_active,department_id').eq('role','employee').order('full_name');
+    if (error) { $('create-employee-status').textContent=`Không tải được nhân viên: ${error.message}`; return; }
     const visible = currentUser.role === 'manager' ? (data || []).filter(employee => employee.department_id === currentUser.departmentId) : data || [];
-    $('managed-employee').innerHTML = visible.map(employee => `<option value="${employee.id}">${employee.full_name}</option>`).join('');
+    $('managed-employee').replaceChildren();
+    for (const employee of visible) $('managed-employee').add(new Option(employee.full_name,employee.id));
     const selected = visible[0];
     if (selected) { $('managed-employee-name').value = selected.full_name; $('managed-employee-active').value = String(selected.is_active); }
   }
@@ -30,7 +33,9 @@
   $('manage-employee-form').onsubmit = async event => {
     event.preventDefault();
     const id = $('managed-employee').value;
-    const {error} = await client.rpc('manager_update_employee', {p_id:id, p_full_name:$('managed-employee-name').value.trim(), p_department_id:currentUser.departmentId || null, p_is_active:$('managed-employee-active').value === 'true'});
+    const {data:existing,error:readError}=await client.from('profiles').select('department_id').eq('id',id).single();
+    if(readError) { $('create-employee-status').textContent=readError.message; return; }
+    const {error} = await client.rpc('manager_update_employee', {p_id:id, p_full_name:$('managed-employee-name').value.trim(), p_department_id:existing.department_id, p_is_active:$('managed-employee-active').value === 'true'});
     $('create-employee-status').textContent = error ? `Không cập nhật được: ${error.message}` : 'Đã cập nhật nhân viên.';
     loadManagedEmployees();
   };

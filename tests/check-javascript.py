@@ -30,10 +30,14 @@ function alert() {}
 '''
 test='''
 setView({id:'demo',name:'Admin',role:'admin'});
-if ($('admin-panel').classList.contains('hidden')) throw Error('Admin panel hidden');
+if ($('admin-panel').classList.contains('hidden') || $('management-home').classList.contains('hidden')) throw Error('Admin management hidden');
 setView({id:'demo',name:'Own',role:'own'});
 if ($('admin-panel').classList.contains('hidden') || $('user-role').textContent !== 'Chủ sở hữu (own)') throw Error('Own role unavailable');
+setView({id:'demo',name:'Manager',role:'manager'});
+if ($('management-home').classList.contains('hidden') || $('manager-tools').classList.contains('hidden')) throw Error('Manager tools hidden');
+if (!$('admin-tools').classList.contains('hidden') || !$('open-system').classList.contains('hidden')) throw Error('Manager sees owner/admin controls');
 setView({id:'demo',name:'Employee',role:'employee'});
+if (!$('management-home').classList.contains('hidden')) throw Error('Employee sees management home');
 for(const id of ['admin-nav','admin-panel','export','schedule-panel']) if(!$(id).classList.contains('hidden')) throw Error('Employee can see '+id);
 if(stats.some(s=>!s.classList.contains('hidden'))) throw Error('Employee sees placeholder stats');
 if($('page-title').textContent !== 'Chấm công của tôi') throw Error('Wrong employee view');
@@ -93,3 +97,35 @@ assert not error.value, message(error)
 result=j.JSEvaluateScript(ctx,string('edgeResult'),None,None,1,c.byref(error))
 assert message(result)=='PASS', message(result)
 print('PASS: creation endpoint rejects unauthenticated, employee, disabled and unapproved admin; permits own/approved admin')
+# Regression: a missing profile column must be visible, never silently downgrade to employee.
+load_user = scripts[0][scripts[0].index('async function loadUser()'):scripts[0].index("$('login-form')")]
+access_mock = r'''
+const ui=new Map();
+const $=id=>{if(!ui.has(id))ui.set(id,{classList:{add(){},remove(){}},textContent:''});return ui.get(id)};
+let mode='missing', seen=[], signedOut=false;
+const client={
+ auth:{getUser:async()=>({data:{user:{id:'test',email:'test@example.invalid'}}}),signOut:async()=>{signedOut=true}},
+ from(){return {select(){return this},eq(){return this},single:async()=> mode==='missing'?{error:{message:'column profiles.department_id does not exist'}}:mode==='legacy'?{data:{full_name:'Legacy admin',role:'admin'}}:{data:{full_name:'Manager',role:'manager',is_active:mode!=='inactive',department_id:'dept-1'}}}}
+};
+function setView(user){seen.push(user)}
+'''
+access_tests = r'''
+let accessResult='pending';
+(async()=>{
+ await loadUser();
+ if(seen.length || !$('login-error').textContent.includes('department_id')) throw Error('Schema error silently downgraded role');
+ mode='manager'; await loadUser();
+ if(seen.length!==1 || seen[0].role!=='manager' || seen[0].departmentId!=='dept-1') throw Error('Manager identity lost');
+ mode='legacy'; await loadUser();
+ if(seen.length!==2 || seen[1].role!=='admin' || seen[1].managementReady!==false || !seen[1].schemaWarning) throw Error('Legacy admin loses management view');
+ mode='inactive'; await loadUser();
+ if(seen.length!==2 || !signedOut) throw Error('Inactive user allowed');
+ accessResult='PASS';
+})().catch(error=>{accessResult=String(error)});
+'''
+ctx=j.JSGlobalContextCreate(None)
+error=p(); j.JSEvaluateScript(ctx,string(access_mock+load_user+access_tests),None,None,1,c.byref(error))
+assert not error.value, message(error)
+result=j.JSEvaluateScript(ctx,string('accessResult'),None,None,1,c.byref(error))
+assert message(result)=='PASS', message(result)
+print('PASS: missing schema shows error, manager role/department retained, inactive user blocked')

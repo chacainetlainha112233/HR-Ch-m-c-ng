@@ -38,6 +38,11 @@
 		#login { display:grid; place-items:center; min-height:100vh; padding:20px; background:radial-gradient(circle at 80% 15%,#f4d9b6 0,transparent 28%),#edf5ed; } .login-box { width:min(430px,100%); padding:38px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:var(--shadow); } .login-box .brand { margin:0 0 42px; color:var(--green); } .login-box h1 { font-size:28px; } .login-box p { color:var(--muted); line-height:1.6; } label { display:block; margin:19px 0 7px; color:#47534f; font-size:13px; font-weight:700; } input { width:100%; padding:12px 13px; border:1px solid var(--line); border-radius:8px; outline:none; } input:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--mint); } .login-box .primary { width:100%; margin-top:22px; padding:13px; } .login-note { margin-top:18px; text-align:center; font-size:12px; } .demo-link { color:var(--green); font-weight:700; cursor:pointer; }
 		@media (max-width:900px) { .shell { grid-template-columns:1fr; } .sidebar { padding:15px 18px; } .brand { margin:0 0 15px; } .side-label,.side-bottom { display:none; } .nav { display:flex; overflow:auto; } .nav button { white-space:nowrap; } main { padding:26px 18px; } .overview { grid-template-columns:1fr 1fr; } .grid { grid-template-columns:1fr; } }
 		@media (max-width:560px) { .topbar { display:block; } .top-actions { margin-top:18px; } .overview,.clock { grid-template-columns:1fr; } .panel { padding:16px; overflow:auto; } .admin-table { min-width:560px; } }
+        .management-shortcuts { display:flex; flex-wrap:wrap; gap:10px; }
+        #management-home { border-top:4px solid var(--green); }
+        #management-description { color:var(--muted); line-height:1.6; }
+        @media(max-width:900px) { .role-tools form { grid-template-columns:1fr 1fr; } }
+        @media(max-width:560px) { .role-tools form { grid-template-columns:1fr; } }
 	</style>
 </head>
 <body>
@@ -61,14 +66,25 @@
 	</section>
 
 	<div id="app" class="shell hidden">
-		<aside class="sidebar"><div class="brand"><span class="brand-mark">✓</span> Giờ Công</div><p class="side-label">Không gian làm việc</p><nav class="nav"><button class="active"><span class="nav-icon">▦</span> Tổng quan</button><button><span class="nav-icon">◷</span> Lịch sử chấm công</button><button id="admin-nav" class="hidden"><span class="nav-icon">◎</span> Quản trị nhân sự</button></nav><div class="side-bottom"><div class="user-chip"><span class="avatar" id="user-avatar">AN</span><div><strong id="user-name">Admin</strong><small id="user-role">Quản trị viên</small></div></div><button class="logout" id="change-password">⌁ Đổi mật khẩu</button><button class="logout" id="logout">↪ Đăng xuất</button></div></aside>
+		<aside class="sidebar"><div class="brand"><span class="brand-mark">✓</span> Giờ Công</div><p class="side-label">Không gian làm việc</p><nav class="nav"><button id="overview-nav" class="active"><span class="nav-icon">▦</span> Tổng quan</button><button id="history-nav"><span class="nav-icon">◷</span> Lịch sử chấm công</button><button id="admin-nav" class="hidden"><span class="nav-icon">◎</span> Quản trị nhân sự</button></nav><div class="side-bottom"><div class="user-chip"><span class="avatar" id="user-avatar">AN</span><div><strong id="user-name">Admin</strong><small id="user-role">Quản trị viên</small></div></div><button class="logout" id="change-password">⌁ Đổi mật khẩu</button><button class="logout" id="logout">↪ Đăng xuất</button></div></aside>
 		<main><div class="topbar"><div><div class="eyebrow" id="page-eyebrow">Thứ hai, 21 tháng 9, 2026</div><h1 id="page-title">Tổng quan hôm nay</h1><div class="date" id="page-subtitle">Chúc bạn một ngày làm việc hiệu quả.</div></div><div class="top-actions"><button class="outline" id="refresh">↻ Làm mới</button><button class="primary" id="export">↓ Xuất báo cáo</button></div></div>
 			<div id="demo-notice" class="notice hidden">Bạn đang xem bản demo. Kết nối Supabase trong phần cấu hình để lưu dữ liệu thật.</div>
+            <section id="management-home" class="panel hidden" style="margin-bottom:20px">
+              <div class="panel-head"><h2 id="management-title">Không gian quản lý</h2><span class="badge" id="management-role"></span></div>
+              <p id="management-description"></p>
+              <div id="management-warning" class="notice hidden" role="status"></div>
+              <div class="management-shortcuts">
+                <button class="outline" id="open-system">Phòng ban & phân quyền</button>
+                <button class="outline" id="open-employees">Quản lý nhân viên</button>
+                <button class="outline" id="open-shifts">Xếp ca & duyệt yêu cầu</button>
+                <button class="outline" id="open-approvals">Yêu cầu own duyệt</button>
+              </div>
+            </section>
 			<section class="overview"><div class="stat featured"><div class="stat-label">Trạng thái hôm nay</div><div class="stat-value" id="today-status">Chưa vào ca</div><div class="stat-note" id="today-note">Bấm “Bắt đầu ca” khi bạn sẵn sàng.</div></div><div class="stat"><div class="stat-label">Giờ làm tuần này</div><div class="stat-value">32<span style="font-size:18px">h 40m</span></div><div class="stat-note">Mục tiêu 40 giờ</div></div><div class="stat"><div class="stat-label">Ngày công tháng này</div><div class="stat-value">18<span style="font-size:18px"> ngày</span></div><div class="stat-note">+2 so với tháng trước</div></div><div class="stat"><div class="stat-label">Đi muộn</div><div class="stat-value">01<span style="font-size:18px"> lần</span></div><div class="stat-note">Trong tháng 9</div></div></section>
 			<div class="grid"><section class="panel"><div class="panel-head"><h2>Chấm công hôm nay</h2><span class="badge">Đang hoạt động</span></div><div class="clock"><div class="clock-card"><p>Giờ vào</p><div class="clock-time" id="check-in-time">--:--</div><button class="primary" id="check-in">Bắt đầu ca</button></div><div class="clock-card"><p>Giờ ra</p><div class="clock-time" id="check-out-time">--:--</div><button class="outline" id="check-out" disabled>Kết thúc ca</button></div></div></section>
 				<section class="panel" id="schedule-panel"><div class="panel-head"><h2>Ca làm sắp tới</h2><a>Xem lịch →</a></div><div class="entry"><div class="entry-date">HÔM NAY</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div><span class="badge">Đang diễn ra</span></div><div class="entry"><div class="entry-date">T3, 22/09</div><div><div class="entry-title">Ca hành chính</div><div class="entry-sub">08:00 — 17:00 · Văn phòng</div></div></div></section>
 				<section class="panel"><div class="panel-head"><h2>Lịch sử gần đây</h2><a>Xem tất cả →</a></div><div class="timeline" id="recent-list"></div></section>
-				<section class="panel hidden" id="admin-panel"><div class="panel-head"><h2>Nhân sự hôm nay</h2><span class="badge">24 nhân viên</span></div><table class="admin-table"><thead><tr><th>Nhân viên</th><th>Giờ vào</th><th>Giờ ra</th><th>Trạng thái</th></tr></thead><tbody id="employee-list"></tbody></table></section>
+				<section class="panel hidden" id="admin-panel"><div class="panel-head"><h2>Danh sách tài khoản</h2></div><table class="admin-table"><thead><tr><th>Nhân viên</th><th>Vai trò</th><th>Mã tài khoản</th><th>Trạng thái</th></tr></thead><tbody id="employee-list"></tbody></table></section>
 				<section class="panel hidden" id="audit-panel"><div class="panel-head"><h2>Giám sát hoạt động</h2><a id="audit-refresh">↻ Làm mới</a></div><table class="admin-table"><thead><tr><th>Thời gian</th><th>Người dùng</th><th>Sự kiện</th></tr></thead><tbody id="audit-list"></tbody></table></section>
 				<section class="panel hidden" id="admin-tools"><div class="panel-head"><h2>Quản trị hệ thống</h2><span class="badge">Admin / Own</span></div><div class="role-tools"><form id="department-form"><div><label for="department-name">Department</label><input id="department-name" placeholder="Ví dụ: Kinh doanh" required></div><div><label for="department-description">Mô tả</label><input id="department-description" placeholder="Mô tả ngắn"></div><button class="primary" type="submit">Thêm department</button></form><form id="role-form"><div><label for="role-user">User</label><select id="role-user" required></select></div><div><label for="role-value">Vai trò</label><select id="role-value"><option value="manager">Manager</option><option value="employee">Employee</option><option value="admin">Admin</option></select></div><div><label for="role-department">Department</label><select id="role-department"><option value="">Chưa phân công</option></select></div><div><label for="role-active">Trạng thái</label><select id="role-active"><option value="true">Đang hoạt động</option><option value="false">Đã khóa</option></select></div><button class="primary" type="submit">Lưu quyền</button></form><p class="tool-status" id="admin-tools-status"></p></div></section>
 				<section class="panel hidden" id="manager-tools"><div class="panel-head"><h2>Điều hành ca & yêu cầu</h2><span class="badge">Manager</span></div><div class="role-tools"><form id="shift-form"><div><label for="shift-user">Nhân viên</label><select id="shift-user" required></select></div><div><label for="shift-date">Ngày</label><input id="shift-date" type="date" required></div><div><label for="shift-type">Ca</label><select id="shift-type"><option value="morning">Ca sáng · 08:00–17:00</option><option value="evening">Ca tối · 17:00–02:00</option></select></div><button class="primary" type="submit">Xếp ca</button></form><div><h3>Yêu cầu chờ duyệt</h3><div class="table-scroll"><table class="admin-table"><thead><tr><th>Loại</th><th>Nhân viên</th><th>Chi tiết</th><th></th></tr></thead><tbody id="manager-requests"></tbody></table></div></div><p class="tool-status" id="manager-tools-status"></p></div></section>
@@ -76,8 +92,7 @@
 			</div>
 		</main>
 	</div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
+
 	<script>
 		const SUPABASE_URL = window.SUPABASE_URL || '';
 		const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
@@ -86,10 +101,80 @@
 		const demoEmployees = [{ name:'Nguyễn An', initials:'NA', in:'08:02', out:'—', status:'Đang làm' }, { name:'Trần Minh', initials:'TM', in:'07:56', out:'17:02', status:'Đủ công' }, { name:'Lê Hương', initials:'LH', in:'—', out:'—', status:'Chưa vào ca' }];
 		let currentUser = { id:'demo', name:'Nguyễn An', email:'demo@congty.vn', role:'employee' }, currentAttendance = null;
 		const $ = id => document.getElementById(id);
-		function setView(user) { currentUser=user; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('user-name').textContent=user.name; $('user-role').textContent=user.role==='own'?'Chủ sở hữu (own)':user.role==='admin'?'Quản trị viên':user.role==='manager'?'Manager':'Nhân viên'; $('user-avatar').textContent=user.name.split(' ').map(x=>x[0]).slice(-2).join(''); const canAdmin=['own','admin'].includes(user.role), canManage=['own','admin','manager'].includes(user.role); $('admin-nav').classList.toggle('hidden',!canManage); $('admin-panel').classList.toggle('hidden',!canAdmin); $('audit-panel').classList.toggle('hidden',!canAdmin); $('admin-tools').classList.toggle('hidden',!canAdmin); $('manager-tools').classList.toggle('hidden',!canManage); $('employee-request-tools').classList.toggle('hidden',user.role==='own'||user.role==='admin'||user.id==='demo'); $('export').classList.toggle('hidden',!canManage); $('schedule-panel').classList.toggle('hidden',!canManage); document.querySelectorAll('.stat').forEach(stat=>stat.classList.toggle('hidden',!canManage)); $('page-title').textContent=canAdmin?'Tổng quan hôm nay':user.role==='manager'?'Điều hành nhân viên':'Chấm công của tôi'; $('password-modal').classList.add('hidden'); if(canAdmin) { renderEmployees(); loadAuditLogs(); } if(canManage) loadRoleTools(); renderHistory(demoHistory); loadHistory(); }
+		function setView(user) { currentUser=user; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); $('user-name').textContent=user.name; $('user-role').textContent=user.role==='own'?'Chủ sở hữu (own)':user.role==='admin'?'Quản trị viên':user.role==='manager'?'Manager':'Nhân viên'; $('user-avatar').textContent=user.name.split(' ').map(x=>x[0]).slice(-2).join(''); const canAdmin=['own','admin'].includes(user.role), canManage=['own','admin','manager'].includes(user.role); $('admin-nav').classList.toggle('hidden',!canManage); $('admin-panel').classList.toggle('hidden',!canAdmin); $('audit-panel').classList.toggle('hidden',!canAdmin); $('admin-tools').classList.toggle('hidden',!canAdmin); $('manager-tools').classList.toggle('hidden',!canManage); $('employee-request-tools').classList.toggle('hidden',user.role==='own'||user.role==='admin'||user.id==='demo'); $('export').classList.toggle('hidden',!canManage); $('schedule-panel').classList.toggle('hidden',!canManage); document.querySelectorAll('.stat').forEach(stat=>stat.classList.toggle('hidden',!canManage)); $('page-title').textContent=canAdmin?'Quản trị hệ thống':user.role==='manager'?'Điều hành nhân viên':'Chấm công của tôi'; $('password-modal').classList.add('hidden'); if(canAdmin) { renderEmployees(); loadAuditLogs(); } if(canManage) loadRoleTools(); if(user.id==='demo') renderHistory(demoHistory); else { $('recent-list').replaceChildren(); loadHistory(); } window.dispatchEvent(new Event('attendance-user-change')); renderManagementHome(user); }
 		function renderHistory(items) { $('recent-list').innerHTML=items.map(item=>`<div class="entry"><div class="entry-date">${item.date}</div><div><div class="entry-title">${item.title}</div><div class="entry-sub">${item.time}</div></div><span class="badge">${item.status}</span></div>`).join(''); }
-		async function loadRoleTools() { if(!client||currentUser.id==='demo') return; const canAdmin=['own','admin'].includes(currentUser.role), canManager=['own','admin','manager'].includes(currentUser.role); $('admin-tools').classList.toggle('hidden',!canAdmin); $('manager-tools').classList.toggle('hidden',!canManager); if(!canAdmin&&!canManager) return; const {data:profiles}=await client.from('profiles').select('id,full_name,role,is_active,department_id').neq('role','own').order('full_name'); const {data:departments}=await client.from('departments').select('id,name').eq('is_active',true).order('name'); const employees=(profiles||[]).filter(p=>p.role==='employee'); const managerList=currentUser.role==='manager'?employees.filter(p=>p.department_id===currentUser.departmentId):employees; $('shift-user').innerHTML=managerList.map(p=>`<option value="${p.id}">${p.full_name}</option>`).join(''); if(canAdmin) { $('role-user').innerHTML=(profiles||[]).map(p=>`<option value="${p.id}">${p.full_name} · ${p.role}</option>`).join(''); $('role-department').innerHTML='<option value="">Chưa phân công</option>'+(departments||[]).map(d=>`<option value="${d.id}">${d.name}</option>`).join(''); } const {data:leave}=await client.from('leave_requests').select('id,employee_id,from_date,to_date,reason,profiles!inner(full_name)').eq('status','pending').order('created_at',{ascending:false}).limit(50); const {data:overtime}=await client.from('overtime_requests').select('id,employee_id,work_date,hours,reason,profiles!inner(full_name)').eq('status','pending').order('created_at',{ascending:false}).limit(50); const requests=[...(leave||[]).map(r=>({...r,kind:'leave',detail:`Phép ${r.from_date} → ${r.to_date}: ${r.reason}`})),...(overtime||[]).map(r=>({...r,kind:'overtime',detail:`${r.hours} giờ ngày ${r.work_date}: ${r.reason}`}))]; $('manager-requests').innerHTML=requests.map(r=>`<tr><td>${r.kind==='leave'?'Phép':'Tăng ca'}</td><td>${r.profiles?.full_name||''}</td><td>${r.detail}</td><td><button class="outline request-action" data-kind="${r.kind}" data-id="${r.id}" data-status="approved">Duyệt</button> <button class="outline request-action" data-kind="${r.kind}" data-id="${r.id}" data-status="rejected">Từ chối</button></td></tr>`).join('')||'<tr><td colspan="4">Không có yêu cầu chờ duyệt.</td></tr>'; document.querySelectorAll('.request-action').forEach(button=>button.addEventListener('click',()=>reviewRequest(button.dataset.kind,button.dataset.id,button.dataset.status))); }
-		async function reviewRequest(kind,id,status) { const table=kind==='leave'?'leave_requests':'overtime_requests'; const {error}=await client.from(table).update({status,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',id); $('manager-tools-status').textContent=error?`Không thể cập nhật: ${error.message}`:`Đã ${status==='approved'?'duyệt':'từ chối'} yêu cầu.`; loadRoleTools(); }
+        function renderManagementHome(user) {
+          const admin=['own','admin'].includes(user.role), manager=user.role==='manager';
+          $('management-home').classList.toggle('hidden',!admin&&!manager);
+          $('management-title').textContent=manager?'Bảng điều hành Manager':'Bảng quản trị Admin / Own';
+          $('management-role').textContent=user.role;
+          $('management-description').textContent=manager?'Quản lý nhân viên cùng phòng ban, xếp ca và xử lý yêu cầu nghỉ phép, tăng ca.':'Quản lý tài khoản, phòng ban và các yêu cầu thay đổi cần own duyệt.';
+          $('open-system').classList.toggle('hidden',!admin);
+          $('open-approvals').classList.toggle('hidden',!admin);
+          $('admin-nav').textContent=manager?'◎ Điều hành nhân viên':'◎ Quản trị hệ thống';
+          const unavailable=user.managementReady===false;
+          $('management-warning').classList.toggle('hidden',!unavailable&&!user.schemaWarning);
+          $('management-warning').textContent=user.schemaWarning || '';
+          document.querySelectorAll('#admin-tools form button, #manager-tools form button, #create-employee-panel form button, #approval-panel form button').forEach(button=>{button.disabled=unavailable;});
+        }
+        async function loadRoleTools() {
+          if (!client || currentUser.id === 'demo' || currentUser.managementReady===false) return;
+          const userId = currentUser.id;
+          const canAdmin = ['own','admin'].includes(currentUser.role);
+          if (!canAdmin && currentUser.role !== 'manager') return;
+          $('admin-tools-status').textContent = $('manager-tools-status').textContent = '';
+          const controls = ['shift-user','role-user','role-department'];
+          controls.forEach(id => $(id).replaceChildren());
+          try {
+            const results = await Promise.all([
+              client.from('profiles').select('id,full_name,role,is_active,department_id').neq('role','own').order('full_name'),
+              client.from('departments').select('id,name').eq('is_active',true).order('name'),
+              client.from('leave_requests').select('id,employee_id,from_date,to_date,reason,profiles!leave_requests_employee_id_fkey(full_name)').eq('status','pending').order('created_at',{ascending:false}).limit(50),
+              client.from('overtime_requests').select('id,employee_id,work_date,hours,reason,profiles!overtime_requests_employee_id_fkey(full_name)').eq('status','pending').order('created_at',{ascending:false}).limit(50),
+            ]);
+            if (currentUser.id !== userId) return;
+            const failed = results.find(result => result.error);
+            if (failed) throw failed.error;
+            const [profiles, departments, leave, overtime] = results.map(result => result.data || []);
+            const employees = profiles.filter(profile => profile.role === 'employee' && profile.is_active);
+            const visible = currentUser.role === 'manager' ? employees.filter(profile => currentUser.departmentId && profile.department_id === currentUser.departmentId) : employees;
+            for (const profile of visible) $('shift-user').add(new Option(profile.full_name,profile.id));
+            if (canAdmin) {
+              for (const profile of profiles) $('role-user').add(new Option(`${profile.full_name} · ${profile.role}`,profile.id));
+              $('role-department').add(new Option('Chưa phân công',''));
+              for (const department of departments) $('role-department').add(new Option(department.name,department.id));
+              $('role-user').onchange = () => {
+                const profile = profiles.find(item => item.id === $('role-user').value);
+                if (profile) { $('role-value').value=profile.role; $('role-active').value=String(profile.is_active); $('role-department').value=profile.department_id || ''; }
+              };
+              $('role-user').onchange();
+            }
+            const requests = [...leave.map(row => ({...row,kind:'leave',detail:`Phép ${row.from_date} → ${row.to_date}: ${row.reason}`})), ...overtime.map(row => ({...row,kind:'overtime',detail:`${row.hours} giờ ngày ${row.work_date}: ${row.reason}`}))];
+            $('manager-requests').replaceChildren();
+            for (const row of requests) {
+              const tr=document.createElement('tr');
+              for (const value of [row.kind==='leave'?'Phép':'Tăng ca',row.profiles?.full_name || row.employee_id,row.detail]) {
+                const td=document.createElement('td'); td.textContent=value; tr.append(td);
+              }
+              const actions=document.createElement('td');
+              for (const [status,label] of [['approved','Duyệt'],['rejected','Từ chối']]) {
+                const button=document.createElement('button'); button.className='outline'; button.textContent=label;
+                button.onclick=async()=>{button.disabled=true;try{await reviewRequest(row.kind,row.id,status);}finally{button.disabled=false;}};
+                actions.append(button);
+              }
+              tr.append(actions); $('manager-requests').append(tr);
+            }
+            if (!requests.length) $('manager-requests').textContent='Không có yêu cầu chờ duyệt.';
+            if (currentUser.role === 'manager' && !currentUser.departmentId) $('manager-tools-status').textContent='Manager chưa được gán phòng ban. Cần own phân công phòng ban trước khi quản lý nhân viên.';
+            else if (!visible.length) $('manager-tools-status').textContent='Chưa có nhân viên đang hoạt động thuộc phạm vi quản lý.';
+          } catch (error) {
+            if (currentUser.id !== userId) return;
+            const message=`Không tải được quyền quản lý: ${error.message}. Kiểm tra các migration Supabase trong README.`;
+            $('admin-tools-status').textContent=$('manager-tools-status').textContent=message;
+            $('manager-requests').replaceChildren();
+          }
+        }
+		async function reviewRequest(kind,id,status) { const {error}=await client.rpc('manager_review_request',{p_kind:kind,p_id:id,p_status:status}); $('manager-tools-status').textContent=error?`Không thể cập nhật: ${error.message}`:`Đã ${status==='approved'?'duyệt':'từ chối'} yêu cầu.`; loadRoleTools(); }
 		async function loadAuditLogs() { if(!client || !['own','admin'].includes(currentUser?.role)) return; const {data,error}=await client.from('audit_logs').select('occurred_at,event,profiles!inner(full_name)').order('occurred_at',{ascending:false}).limit(100); if(error) { $('audit-list').innerHTML='<tr><td colspan="3">Không tải được nhật ký. Hãy chạy audit-logs.sql.</td></tr>'; return; } const labels={login:'Đăng nhập',logout:'Đăng xuất',password_change:'Đổi mật khẩu'}; $('audit-list').innerHTML=data.map(item=>`<tr><td>${new Date(item.occurred_at).toLocaleString('vi-VN')}</td><td>${item.profiles?.full_name||'Không rõ'}</td><td><span class="badge">${labels[item.event]||item.event}</span></td></tr>`).join('')||'<tr><td colspan="3">Chưa có hoạt động.</td></tr>'; }
         async function loadHistory() {
   if (!client || !currentUser || currentUser.id === 'demo') return;
@@ -128,18 +213,54 @@
 
   renderHistory(history);
 }
-		function renderEmployees() { $('employee-list').innerHTML=demoEmployees.map(e=>`<tr><td><div class="employee"><span class="mini-avatar">${e.initials}</span>${e.name}</div></td><td>${e.in}</td><td>${e.out}</td><td><span class="badge">${e.status}</span></td></tr>`).join(''); }
+        async function renderEmployees() {
+          if (!client || currentUser.id==='demo' || !['own','admin'].includes(currentUser.role)) return;
+          const userId=currentUser.id;
+          const {data,error}=await client.from('profiles').select('id,full_name,role,is_active').neq('role','own').order('full_name');
+          if (currentUser.id!==userId) return;
+          $('employee-list').replaceChildren();
+          if (error) { $('employee-list').textContent=`Không tải được nhân viên: ${error.message}`; return; }
+          for (const profile of data) {
+            const row=document.createElement('tr');
+            for (const value of [profile.full_name,profile.role,profile.id,profile.is_active?'Đang hoạt động':'Đã khóa']) {
+              const cell=document.createElement('td'); cell.textContent=value; row.append(cell);
+            }
+            $('employee-list').append(row);
+          }
+        }
 		function now() { return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
-		async function loadUser() { if(!client) return; const {data:{user}}=await client.auth.getUser(); if(!user) return; const {data:profile}=await client.from('profiles').select('full_name,role,department_id').eq('id',user.id).single(); setView({id:user.id,name:profile?.full_name||user.email.split('@')[0],email:user.email,role:profile?.role||'employee',departmentId:profile?.department_id,mustChangePassword:user.app_metadata?.must_change_password===true}); }
+        async function loadUser() {
+          if (!client) return;
+          try {
+            const {data:{user},error:authError}=await client.auth.getUser();
+            if (authError) throw authError;
+            if (!user) return;
+            const {data:profile,error}=await client.from('profiles').select('*').eq('id',user.id).single();
+            if (error) throw new Error(`Không tải được hồ sơ/quyền: ${error.message}. Cơ sở dữ liệu cần được cập nhật theo README.`);
+            if (!profile || !['own','admin','manager','employee'].includes(profile.role)) throw new Error('Tài khoản chưa được gán vai trò hợp lệ.');
+            if (profile.is_active === false) { await client.auth.signOut(); throw new Error('Tài khoản đã bị khóa.'); }
+            const missing=['is_active','department_id'].filter(column=>!(column in profile));
+            const schemaWarning=missing.length ? 'Tài khoản đã được nhận diện đúng quyền. Chức năng quản lý tạm chưa sẵn sàng vì cơ sở dữ liệu chưa cập nhật. Liên hệ own để hoàn tất thiết lập.' : '';
+            setView({managementReady:missing.length===0,schemaWarning,id:user.id,name:profile.full_name||user.email.split('@')[0],email:user.email,role:profile.role,departmentId:profile.department_id,mustChangePassword:user.app_metadata?.must_change_password===true});
+          } catch(error) {
+            $('app').classList.add('hidden'); $('login').classList.remove('hidden'); $('login-error').textContent=error.message;
+          }
+        }
 		$('login-form').addEventListener('submit', async event => { event.preventDefault(); $('login-error').textContent=''; if(!client) { $('login-error').textContent='Chưa có cấu hình Supabase. Hãy chọn bản demo.'; return; } const {data,error}=await client.auth.signInWithPassword({email:$('email').value,password:$('password').value}); if(error) $('login-error').textContent=error.message; else { await client.rpc('log_auth_event',{p_event:'login',p_metadata:{source:'web'}}); loadUser(); } });
-		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView(currentUser); });
+		$('demo-login').addEventListener('click',()=>{ $('demo-notice').classList.remove('hidden'); setView({id:'demo',name:'Nguyễn An',email:'demo@congty.vn',role:'employee'}); });
 		document.querySelectorAll('.password-toggle').forEach(button=>button.addEventListener('click',()=>{ const input=$(button.dataset.target); const showing=input.type==='text'; input.type=showing?'password':'text'; button.textContent=showing?'Hiện':'Ẩn'; button.setAttribute('aria-label',showing?'Hiện mật khẩu':'Ẩn mật khẩu'); }));
 		$('change-password').addEventListener('click',()=>{ $('password-error').textContent=''; $('password-form').reset(); $('password-modal').classList.remove('hidden'); $('new-password').focus(); });
 		$('cancel-password').addEventListener('click',()=>{ $('password-modal').classList.add('hidden'); $('password-form').reset(); });
+        $('admin-nav').onclick=()=>$('management-home').scrollIntoView({behavior:'smooth'});
+        $('overview-nav').onclick=()=>$('page-title').scrollIntoView({behavior:'smooth'});
+        $('history-nav').onclick=()=>$('recent-list').scrollIntoView({behavior:'smooth'});
+        for(const [id,target] of [['open-system','admin-tools'],['open-employees','create-employee-panel'],['open-shifts','manager-tools'],['open-approvals','approval-panel']]) {
+          $(id).onclick=()=>$(target)?.scrollIntoView({behavior:'smooth'});
+        }
 		$('audit-refresh').addEventListener('click',loadAuditLogs);
 		$('department-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.from('departments').insert({name:$('department-name').value.trim(),description:$('department-description').value.trim()}); $('admin-tools-status').textContent=error?`Không thể thêm department: ${error.message}`:'Đã thêm department.'; if(!error) event.target.reset(); });
 		$('role-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.rpc('admin_update_user_access',{p_id:$('role-user').value,p_role:$('role-value').value,p_is_active:$('role-active').value==='true',p_department_id:$('role-department').value||null}); $('admin-tools-status').textContent=error?`Không thể lưu quyền: ${error.message}`:'Đã cập nhật role, department và trạng thái.'; if(!error) loadRoleTools(); });
-		$('shift-form').addEventListener('submit',async event=>{ event.preventDefault(); const shift=$('shift-type').value; const payload={employee_id:$('shift-user').value,work_date:$('shift-date').value,shift,start_time:shift==='morning'?'08:00':'17:00',end_time:shift==='morning'?'17:00':'02:00',created_by:currentUser.id}; const {error}=await client.from('shift_assignments').upsert(payload,{onConflict:'employee_id,work_date'}); $('manager-tools-status').textContent=error?`Không thể xếp ca: ${error.message}`:'Đã xếp ca thành công.'; });
+		$('shift-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.rpc('manager_save_shift',{p_employee:$('shift-user').value,p_work_date:$('shift-date').value,p_shift:$('shift-type').value,p_note:null}); $('manager-tools-status').textContent=error?`Không thể xếp ca: ${error.message}`:'Đã xếp ca thành công.'; });
 		$('leave-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.from('leave_requests').insert({employee_id:currentUser.id,from_date:$('leave-from').value,to_date:$('leave-to').value,reason:$('leave-reason').value.trim()}); $('request-tools-status').textContent=error?`Không thể gửi đơn: ${error.message}`:'Đã gửi đơn nghỉ phép.'; if(!error) event.target.reset(); });
 		$('overtime-form').addEventListener('submit',async event=>{ event.preventDefault(); const {error}=await client.from('overtime_requests').insert({employee_id:currentUser.id,work_date:$('overtime-date').value,hours:Number($('overtime-hours').value),reason:$('overtime-reason').value.trim()}); $('request-tools-status').textContent=error?`Không thể gửi yêu cầu: ${error.message}`:'Đã gửi yêu cầu tăng ca.'; if(!error) event.target.reset(); });
 		$('password-form').addEventListener('submit',async event=>{ event.preventDefault(); const password=$('new-password').value; $('password-error').textContent=''; if(password==='123456'||password.length<12) { $('password-error').textContent='Mật khẩu mới phải có ít nhất 12 ký tự và không được là 123456.'; return; } if(password!==$('confirm-password').value) { $('password-error').textContent='Hai mật khẩu chưa trùng khớp.'; return; } if(!client) { $('password-error').textContent='Chưa kết nối Supabase.'; return; } const {data,error}=await client.functions.invoke('change-password',{body:{password}}); if(error||!data?.ok) { const detail=data?.error||error?.context?.error||error?.message||''; $('password-error').textContent=detail.includes('404')?'Chức năng đổi mật khẩu chưa được deploy trên Supabase. Hãy deploy change-password rồi thử lại.':detail||'Không thể lưu mật khẩu vào Supabase.'; return; } currentUser.mustChangePassword=false; $('password-modal').classList.add('hidden'); $('password-form').reset(); });
@@ -147,7 +268,10 @@
 		$('check-in').addEventListener('click',async()=>{ const time=now(); currentAttendance={check_in:time}; $('check-in-time').textContent=time; $('check-in').disabled=true; $('check-out').disabled=false; $('today-status').textContent='Đang làm việc'; $('today-note').textContent='Ca làm đang được ghi nhận.'; if(client&&currentUser.id!=='demo') { const {data}=await client.from('attendance').insert({employee_id:currentUser.id,check_in:new Date().toISOString()}).select('id').single(); currentAttendance.id=data?.id; } });
 		$('check-out').addEventListener('click',async()=>{ if(!client||currentUser.id==='demo') { $('check-out-time').textContent=now(); $('check-out').disabled=true; $('today-status').textContent='Đã hoàn thành'; return; } $('check-out').disabled=true; const {error}=await client.from('attendance').update({check_out:new Date().toISOString()}).eq('id',currentAttendance?.id); if(error) { $('check-out').disabled=false; $('today-note').textContent=error.message.includes('8 giờ')?'Chưa đủ 8 giờ kể từ khi vào ca.':`Không thể kết thúc ca: ${error.message}`; return; } $('check-out-time').textContent=now(); $('today-status').textContent='Đã hoàn thành'; $('today-note').textContent='Cảm ơn bạn, hẹn gặp lại!'; });
 		$('refresh').addEventListener('click',()=>location.reload()); $('export').addEventListener('click',()=>alert('Báo cáo CSV sẽ được bật sau khi kết nối Supabase.'));
-		if(client) loadUser();
+
 	</script>
+	<script src="employee-admin.js"></script>
+	<script src="owner-approvals.js"></script>
+	<script>if(client) loadUser();</script>
 </body>
 </html>

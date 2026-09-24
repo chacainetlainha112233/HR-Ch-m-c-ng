@@ -141,7 +141,7 @@
     panel.classList.toggle('hidden',!active()); nav.classList.toggle('hidden',!active()); $('approval-list').replaceChildren(); $('managed-profile').replaceChildren();
     $('profile-request-form').reset(); $('managed-status').textContent=$('approval-status').textContent='';
     $('approval-heading').textContent=currentUser.role==='own'?'Own · Duyệt yêu cầu':'Yêu cầu đã gửi';
-    if(active()) {
+    if(active() && currentUser.managementReady!==false) {
       loadRequests(); loadProfiles().catch(error=>{$('managed-status').textContent=error.message;});
       timer=setInterval(()=>{if(!document.hidden && !busy) loadRequests();},15000);
     }

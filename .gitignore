@@ -1,2 +1,6 @@
 .env.local
 created-users.csv
+
+
+# Common typo of the local secrets filename
+.evn.local
