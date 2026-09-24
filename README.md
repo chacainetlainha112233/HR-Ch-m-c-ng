@@ -30,7 +30,7 @@ Không đặt service role key trong HTML, `config.js` hoặc GitHub. Sau khi ro
 node provision-users.mjs
 ```
 
-Script tạo `own@gmail.com` với role `own`, `admin@gmail.com` với role `admin`, và `test1@gmail.com` đến `test10@gmail.com` với role `employee`. Mật khẩu khởi tạo là `123456`; hệ thống bắt buộc đổi sang mật khẩu mới tối thiểu 12 ký tự ngay sau đăng nhập. Mật khẩu được ghi vào `created-users.csv`, file này đã nằm trong `.gitignore`.
+Script tạo `own@gmail.com` với role `own`, `admin@gmail.com` với role `admin`, và `test1@gmail.com` đến `test10@gmail.com` với role `employee`. Mật khẩu khởi tạo là `123456`; người dùng có thể đổi mật khẩu bất cứ lúc nào từ nút **Đổi mật khẩu** sau khi đăng nhập. Mật khẩu được ghi vào `created-users.csv`, file này đã nằm trong `.gitignore`.
 
 Sau khi deploy, cần deploy thêm hai Edge Function:
 
@@ -39,7 +39,7 @@ supabase functions deploy create-employee
 supabase functions deploy change-password
 ```
 
-Không dùng `123456` cho tài khoản nào khác và không gửi file `created-users.csv` lên GitHub.
+Không dùng `123456` cho tài khoản nào khác và không gửi file `created-users.csv` lên GitHub. Việc đổi mật khẩu là tùy chọn, không bắt buộc ngay sau đăng nhập.
 Mật khẩu mới được lưu trong Supabase Auth bởi function `change-password`; nếu chưa deploy function, màn hình sẽ báo rõ và không giả lập việc đổi mật khẩu thành công.
 
 ### Whitelist IP cho chấm công
